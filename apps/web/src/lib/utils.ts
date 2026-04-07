@@ -39,7 +39,7 @@ export function normalizePhoneNumber(value: string) {
 }
 
 export function buildScanToken(submissionToken: string) {
-  return createHash("sha256").update(submissionToken).digest("base64url").slice(0, 24);
+  return createHash("sha256").update(submissionToken).digest("base64url").slice(0, 10);
 }
 
 export function generateIntakeNumber(now = new Date()) {
