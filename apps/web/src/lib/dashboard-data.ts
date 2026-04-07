@@ -267,7 +267,13 @@ function buildTrendPoints(createdAtValues: string[]) {
 
 export async function getIntakeTrendSeries() {
   const supabase = getSupabaseAdminClient();
-  const { data } = await supabase.from("intakes").select("created_at").order("created_at", { ascending: true });
+  const fiveYearsAgo = new Date();
+  fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+  const { data } = await supabase
+    .from("intakes")
+    .select("created_at")
+    .gte("created_at", fiveYearsAgo.toISOString())
+    .order("created_at", { ascending: true });
   const createdAtValues = ((data as Array<{ created_at: string }> | null) ?? []).map((item) => item.created_at);
 
   return buildTrendPoints(createdAtValues);
@@ -291,9 +297,11 @@ export async function getIntakeDirectory(options?: { includeArchived?: boolean; 
 
   const { data } = await query;
   const intakes = (data as IntakeRow[] | null) ?? [];
-  const customers = await getCustomersByIds(intakes.map((intake) => intake.customer_id));
-  const latestPrintJobs = await getLatestPrintJobs(intakes.map((intake) => intake.id));
-  const customerIntakeCounts = await getCustomerIntakeCounts(intakes.map((intake) => intake.customer_id));
+  const [customers, latestPrintJobs, customerIntakeCounts] = await Promise.all([
+    getCustomersByIds(intakes.map((intake) => intake.customer_id)),
+    getLatestPrintJobs(intakes.map((intake) => intake.id)),
+    getCustomerIntakeCounts(intakes.map((intake) => intake.customer_id)),
+  ]);
 
   return intakes.map((intake) => {
     const customer = customers.get(intake.customer_id);

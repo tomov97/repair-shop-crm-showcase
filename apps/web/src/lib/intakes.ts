@@ -340,9 +340,11 @@ export async function getDashboardData(): Promise<DashboardData> {
   }
 
   const recentIntakes = recentIntakesResult.data as IntakeRow[];
-  const customers = await getCustomersByIds(recentIntakes.map((item) => item.customer_id));
-  const latestPrintJobs = await getLatestPrintJobs(recentIntakes.map((item) => item.id));
-  const customerIntakeCounts = await getCustomerIntakeCounts(recentIntakes.map((item) => item.customer_id));
+  const [customers, latestPrintJobs, customerIntakeCounts] = await Promise.all([
+    getCustomersByIds(recentIntakes.map((item) => item.customer_id)),
+    getLatestPrintJobs(recentIntakes.map((item) => item.id)),
+    getCustomerIntakeCounts(recentIntakes.map((item) => item.customer_id)),
+  ]);
 
   return {
     summary: {
@@ -387,21 +389,23 @@ export async function getIntakeDetail(intakeId: string): Promise<IntakeDetail | 
     return null;
   }
 
-  const customers = await getCustomersByIds([intake.customer_id]);
+  const [customers, customerIntakeCounts, { data: relatedIntakes }, { data: printJobs }] = await Promise.all([
+    getCustomersByIds([intake.customer_id]),
+    getCustomerIntakeCounts([intake.customer_id]),
+    supabase
+      .from("intakes")
+      .select("id, intake_number, brand, model, is_archived, created_at")
+      .eq("customer_id", intake.customer_id)
+      .neq("id", intakeId)
+      .order("created_at", { ascending: false })
+      .limit(6),
+    supabase
+      .from("print_jobs")
+      .select("id, intake_id, label_asset_url, status, attempt_count, last_error, created_at, updated_at, printed_at")
+      .eq("intake_id", intakeId)
+      .order("created_at", { ascending: false }),
+  ]);
   const customer = customers.get(intake.customer_id);
-  const customerIntakeCounts = await getCustomerIntakeCounts([intake.customer_id]);
-  const { data: relatedIntakes } = await supabase
-    .from("intakes")
-    .select("id, intake_number, brand, model, is_archived, created_at")
-    .eq("customer_id", intake.customer_id)
-    .neq("id", intakeId)
-    .order("created_at", { ascending: false })
-    .limit(6);
-  const { data: printJobs } = await supabase
-    .from("print_jobs")
-    .select("id, intake_id, label_asset_url, status, attempt_count, last_error, created_at, updated_at, printed_at")
-    .eq("intake_id", intakeId)
-    .order("created_at", { ascending: false });
 
   return {
     id: intake.id,

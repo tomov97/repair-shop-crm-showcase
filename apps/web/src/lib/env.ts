@@ -72,7 +72,15 @@ export function getServerEnv() {
     NEXT_PUBLIC_SUPABASE_URL:
       process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL ?? fallbackEnv.SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+    NEXT_PUBLIC_SITE_URL:
+      process.env.NEXT_PUBLIC_SITE_URL
+      ?? (process.env.VERCEL_PROJECT_PRODUCTION_URL
+        ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+        : undefined)
+      ?? (process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : undefined)
+      ?? "http://localhost:3000",
     SUPABASE_SERVICE_ROLE_KEY:
       process.env.SUPABASE_SERVICE_ROLE_KEY ?? fallbackEnv.SUPABASE_SERVICE_ROLE_KEY,
   });
