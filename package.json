@@ -1,0 +1,19 @@
+{
+  "name": "crm-kafemashini-label-maker",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @crm/web",
+    "dev:web": "npm run dev --workspace @crm/web",
+    "dev:print-agent": "npm run dev --workspace @crm/print-agent",
+    "build": "npm run build --workspace @crm/web && npm run build --workspace @crm/print-agent",
+    "lint": "npm run lint --workspace @crm/web",
+    "typecheck": "npm run typecheck --workspace @crm/web && npm run typecheck --workspace @crm/print-agent"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

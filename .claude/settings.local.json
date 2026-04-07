@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pwd -W)",
+      "Bash(powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File scripts/print-label.ps1 -TemplatePath __CMDSUB_OUTPUT__/assets/label.lbx -IntakeNumber SC-05/04/26-00000__TRACKED_VAR__ -QrPayload http://x.co/t/aBcDeFgHiJkLmNoPqRsTuVwX -PrinterName 'Brother QL-800')"
+    ]
+  }
+}

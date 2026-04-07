@@ -1,0 +1,5 @@
+# Keep Codex config intentionally minimal.
+# Project-specific guidance belongs in AGENTS.md and the docs/ folder.
+
+model = "gpt-5.4"
+reasoning_effort = "medium"
