@@ -34,18 +34,6 @@ type IntakeRow = {
   archived_at: string | null;
 };
 
-type PrintJobRow = {
-  id: string;
-  intake_id: string;
-  label_asset_url: string;
-  status: "queued" | "printing" | "printed" | "failed";
-  attempt_count: number;
-  last_error: string | null;
-  created_at: string;
-  updated_at: string;
-  printed_at: string | null;
-};
-
 type AuditEventInsert = {
   entity_type: string;
   entity_id: string;
@@ -214,72 +202,6 @@ async function insertAuditEvent(event: AuditEventInsert) {
   await supabase.from("audit_events").insert(event);
 }
 
-async function getCustomersByIds(customerIds: string[]) {
-  if (customerIds.length === 0) {
-    return new Map<string, CustomerRow>();
-  }
-
-  const supabase = getSupabaseAdminClient();
-  const { data, error } = await supabase
-    .from("customers")
-    .select("id, full_name, normalized_phone, display_phone, created_at, updated_at")
-    .in("id", customerIds);
-
-  if (error || !data) {
-    return new Map<string, CustomerRow>();
-  }
-
-  return new Map<string, CustomerRow>(data.map((customer) => [customer.id, customer as CustomerRow]));
-}
-
-async function getLatestPrintJobs(intakeIds: string[]) {
-  if (intakeIds.length === 0) {
-    return new Map<string, PrintJobRow>();
-  }
-
-  const supabase = getSupabaseAdminClient();
-  const { data, error } = await supabase
-    .from("print_jobs")
-    .select("id, intake_id, label_asset_url, status, attempt_count, last_error, created_at, updated_at, printed_at")
-    .in("intake_id", intakeIds)
-    .order("created_at", { ascending: false });
-
-  if (error || !data) {
-    return new Map<string, PrintJobRow>();
-  }
-
-  const latestJobs = new Map<string, PrintJobRow>();
-
-  for (const job of data as PrintJobRow[]) {
-    if (!latestJobs.has(job.intake_id)) {
-      latestJobs.set(job.intake_id, job);
-    }
-  }
-
-  return latestJobs;
-}
-
-async function getCustomerIntakeCounts(customerIds: string[]) {
-  if (customerIds.length === 0) {
-    return new Map<string, number>();
-  }
-
-  const supabase = getSupabaseAdminClient();
-  const { data, error } = await supabase.from("intakes").select("customer_id").in("customer_id", customerIds);
-
-  if (error || !data) {
-    return new Map<string, number>();
-  }
-
-  const counts = new Map<string, number>();
-
-  for (const item of data as Array<{ customer_id: string }>) {
-    counts.set(item.customer_id, (counts.get(item.customer_id) ?? 0) + 1);
-  }
-
-  return counts;
-}
-
 async function getNextIntakeNumber(supabase = getSupabaseAdminClient(), now = new Date()) {
   const year = now.getFullYear().toString().slice(-2);
   const month = `${now.getMonth() + 1}`.padStart(2, "0");
@@ -307,11 +229,12 @@ export async function getDashboardData(): Promise<DashboardData> {
   const [recentIntakesResult, activeCountResult, archivedCountResult, queuedCountResult] = await Promise.all([
     supabase
       .from("intakes")
-      .select(
-        "id, customer_id, intake_number, scan_token, brand, model, issue_description, notes, is_archived, charged_amount, created_at, updated_at, archived_at",
-      )
+      .select(`
+        id, customer_id, intake_number, brand, model, is_archived, charged_amount, created_at,
+        customers ( full_name, display_phone ),
+        print_jobs ( status, created_at )
+      `)
       .eq("is_archived", false)
-      .order("is_archived", { ascending: true })
       .order("created_at", { ascending: false })
       .limit(8),
     supabase.from("intakes").select("id", { count: "exact", head: true }).eq("is_archived", false),
@@ -339,12 +262,18 @@ export async function getDashboardData(): Promise<DashboardData> {
     };
   }
 
-  const recentIntakes = recentIntakesResult.data as IntakeRow[];
-  const [customers, latestPrintJobs, customerIntakeCounts] = await Promise.all([
-    getCustomersByIds(recentIntakes.map((item) => item.customer_id)),
-    getLatestPrintJobs(recentIntakes.map((item) => item.id)),
-    getCustomerIntakeCounts(recentIntakes.map((item) => item.customer_id)),
-  ]);
+  type RecentIntakeRow = IntakeRow & {
+    customers: { full_name: string; display_phone: string } | null;
+    print_jobs: Array<{ status: string; created_at: string }>;
+  };
+
+  const recentIntakes = recentIntakesResult.data as unknown as RecentIntakeRow[];
+
+  // Compute visit counts from the result set — no extra query needed
+  const customerVisitCounts = new Map<string, number>();
+  for (const intake of recentIntakes) {
+    customerVisitCounts.set(intake.customer_id, (customerVisitCounts.get(intake.customer_id) ?? 0) + 1);
+  }
 
   return {
     summary: {
@@ -354,21 +283,20 @@ export async function getDashboardData(): Promise<DashboardData> {
       totalCount: (activeCountResult.count ?? 0) + (archivedCountResult.count ?? 0),
     },
     recentIntakes: recentIntakes.map((intake) => {
-      const customer = customers.get(intake.customer_id);
-      const latestPrintJob = latestPrintJobs.get(intake.id);
+      const latestPrintJob = intake.print_jobs.sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
 
       return {
         id: intake.id,
         intakeNumber: intake.intake_number,
-        customerName: customer?.full_name ?? "Неизвестен клиент",
-        customerPhone: customer?.display_phone ?? "Няма телефон",
+        customerName: intake.customers?.full_name ?? "Неизвестен клиент",
+        customerPhone: intake.customers?.display_phone ?? "Няма телефон",
         brand: intake.brand,
         model: intake.model,
         createdAtLabel: formatDateTime(intake.created_at),
         isArchived: intake.is_archived,
         printStatus: getPrintStatusLabel(latestPrintJob?.status),
         chargedAmountValue: intake.charged_amount ?? undefined,
-        customerVisitCount: customerIntakeCounts.get(intake.customer_id) ?? 1,
+        customerVisitCount: customerVisitCounts.get(intake.customer_id) ?? 1,
       };
     }),
     backendMessage: null,
@@ -377,35 +305,59 @@ export async function getDashboardData(): Promise<DashboardData> {
 
 export async function getIntakeDetail(intakeId: string): Promise<IntakeDetail | null> {
   const supabase = getSupabaseAdminClient();
-  const { data: intake, error } = await supabase
-    .from("intakes")
-    .select(
-      "id, customer_id, intake_number, scan_token, brand, model, issue_description, notes, is_archived, charged_amount, coffee_count, created_at, updated_at, archived_at",
-    )
-    .eq("id", intakeId)
-    .maybeSingle();
 
-  if (error || !intake) {
-    return null;
-  }
-
-  const [customers, customerIntakeCounts, { data: relatedIntakes }, { data: printJobs }] = await Promise.all([
-    getCustomersByIds([intake.customer_id]),
-    getCustomerIntakeCounts([intake.customer_id]),
+  const [intakeResult, relatedIntakesResult, printJobsResult] = await Promise.all([
     supabase
       .from("intakes")
-      .select("id, intake_number, brand, model, is_archived, created_at")
-      .eq("customer_id", intake.customer_id)
+      .select(`
+        id, customer_id, intake_number, scan_token, brand, model, issue_description, notes,
+        is_archived, charged_amount, coffee_count, created_at, updated_at, archived_at,
+        customers ( full_name, display_phone )
+      `)
+      .eq("id", intakeId)
+      .maybeSingle(),
+    supabase
+      .from("intakes")
+      .select("id, intake_number, brand, model, is_archived, created_at, customer_id")
       .neq("id", intakeId)
       .order("created_at", { ascending: false })
-      .limit(6),
+      .limit(50), // fetched broadly; filter by customer_id below once we know it
     supabase
       .from("print_jobs")
-      .select("id, intake_id, label_asset_url, status, attempt_count, last_error, created_at, updated_at, printed_at")
+      .select("id, status, last_error, created_at, updated_at, printed_at")
       .eq("intake_id", intakeId)
       .order("created_at", { ascending: false }),
   ]);
-  const customer = customers.get(intake.customer_id);
+
+  const intake = intakeResult.data as (IntakeRow & {
+    coffee_count: number | null;
+    customers: { full_name: string; display_phone: string } | null;
+  }) | null;
+
+  if (intakeResult.error || !intake) {
+    return null;
+  }
+
+  const previousIntakes = (relatedIntakesResult.data as Array<{
+    id: string;
+    customer_id: string;
+    intake_number: string;
+    brand: string;
+    model: string;
+    is_archived: boolean;
+    created_at: string;
+  }> | null)
+    ?.filter((item) => item.customer_id === intake.customer_id)
+    .slice(0, 6) ?? [];
+
+  const printJobs = (printJobsResult.data as Array<{
+    id: string;
+    status: string;
+    last_error: string | null;
+    created_at: string;
+    updated_at: string;
+    printed_at: string | null;
+  }> | null) ?? [];
 
   return {
     id: intake.id,
@@ -422,33 +374,25 @@ export async function getIntakeDetail(intakeId: string): Promise<IntakeDetail | 
     model: intake.model,
     issueDescription: intake.issue_description,
     notes: intake.notes,
-    customerName: customer?.full_name ?? "Неизвестен клиент",
-    customerPhone: customer?.display_phone ?? "Няма телефон",
-    customerVisitCount: customerIntakeCounts.get(intake.customer_id) ?? 1,
-    previousIntakes:
-      (relatedIntakes as Array<{
-        id: string;
-        intake_number: string;
-        brand: string;
-        model: string;
-        is_archived: boolean;
-        created_at: string;
-      }> | null)?.map((item) => ({
-        id: item.id,
-        intakeNumber: item.intake_number,
-        createdAtLabel: formatDateTime(item.created_at),
-        brand: item.brand,
-        model: item.model,
-        isArchived: item.is_archived,
-      })) ?? [],
-    printJobs: (printJobs as PrintJobRow[] | null)?.map((job) => ({
+    customerName: intake.customers?.full_name ?? "Неизвестен клиент",
+    customerPhone: intake.customers?.display_phone ?? "Няма телефон",
+    customerVisitCount: previousIntakes.length + 1,
+    previousIntakes: previousIntakes.map((item) => ({
+      id: item.id,
+      intakeNumber: item.intake_number,
+      createdAtLabel: formatDateTime(item.created_at),
+      brand: item.brand,
+      model: item.model,
+      isArchived: item.is_archived,
+    })),
+    printJobs: printJobs.map((job) => ({
       id: job.id,
       status: getPrintStatusLabel(job.status),
       createdAtLabel: formatDateTime(job.created_at),
       updatedAtLabel: formatDateTime(job.updated_at),
       printedAtLabel: job.printed_at ? formatDateTime(job.printed_at) : null,
       lastError: job.last_error,
-    })) ?? [],
+    })),
   };
 }
 

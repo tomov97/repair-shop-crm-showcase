@@ -1,11 +1,5 @@
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
-import { formatDateTime, formatMoney } from "@/lib/utils";
-
-type CustomerRow = {
-  id: string;
-  full_name: string;
-  display_phone: string;
-};
+import { formatDateTime } from "@/lib/utils";
 
 type IntakeRow = {
   id: string;
@@ -101,58 +95,6 @@ function getPrintStatusLabel(status: string | null | undefined) {
   }
 }
 
-async function getCustomersByIds(customerIds: string[]) {
-  if (customerIds.length === 0) {
-    return new Map<string, CustomerRow>();
-  }
-
-  const supabase = getSupabaseAdminClient();
-  const { data } = await supabase
-    .from("customers")
-    .select("id, full_name, display_phone")
-    .in("id", customerIds);
-
-  return new Map<string, CustomerRow>((data as CustomerRow[] | null)?.map((customer) => [customer.id, customer]) ?? []);
-}
-
-async function getLatestPrintJobs(intakeIds: string[]) {
-  if (intakeIds.length === 0) {
-    return new Map<string, PrintJobRow>();
-  }
-
-  const supabase = getSupabaseAdminClient();
-  const { data } = await supabase
-    .from("print_jobs")
-    .select("id, intake_id, label_asset_url, status, attempt_count, last_error, created_at, updated_at, printed_at")
-    .in("intake_id", intakeIds)
-    .order("created_at", { ascending: false });
-
-  const latestByIntake = new Map<string, PrintJobRow>();
-
-  for (const job of (data as PrintJobRow[] | null) ?? []) {
-    if (!latestByIntake.has(job.intake_id)) {
-      latestByIntake.set(job.intake_id, job);
-    }
-  }
-
-  return latestByIntake;
-}
-
-async function getCustomerIntakeCounts(customerIds: string[]) {
-  if (customerIds.length === 0) {
-    return new Map<string, number>();
-  }
-
-  const supabase = getSupabaseAdminClient();
-  const { data } = await supabase.from("intakes").select("customer_id").in("customer_id", customerIds);
-  const counts = new Map<string, number>();
-
-  for (const item of (data as Array<{ customer_id: string }> | null) ?? []) {
-    counts.set(item.customer_id, (counts.get(item.customer_id) ?? 0) + 1);
-  }
-
-  return counts;
-}
 
 function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -279,39 +221,49 @@ export async function getIntakeTrendSeries() {
   return buildTrendPoints(createdAtValues);
 }
 
-export async function getIntakeDirectory(options?: { includeArchived?: boolean; limit?: number }) {
-  const includeArchived = options?.includeArchived ?? true;
+export async function getIntakeDirectory(options?: { includeArchived?: boolean; archivedOnly?: boolean; limit?: number }) {
   const limit = options?.limit ?? 30;
   const supabase = getSupabaseAdminClient();
 
   let query = supabase
     .from("intakes")
-    .select("id, customer_id, intake_number, brand, model, is_archived, charged_amount, created_at")
-    .order("is_archived", { ascending: true })
+    .select(`
+      id, customer_id, intake_number, brand, model, is_archived, charged_amount, created_at,
+      customers ( full_name, display_phone ),
+      print_jobs ( status, created_at )
+    `)
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  if (!includeArchived) {
+  if (options?.archivedOnly) {
+    query = query.eq("is_archived", true);
+  } else if (!options?.includeArchived) {
     query = query.eq("is_archived", false);
+  } else {
+    query = query.order("is_archived", { ascending: true });
   }
 
   const { data } = await query;
-  const intakes = (data as IntakeRow[] | null) ?? [];
-  const [customers, latestPrintJobs, customerIntakeCounts] = await Promise.all([
-    getCustomersByIds(intakes.map((intake) => intake.customer_id)),
-    getLatestPrintJobs(intakes.map((intake) => intake.id)),
-    getCustomerIntakeCounts(intakes.map((intake) => intake.customer_id)),
-  ]);
+  const intakes = (data as Array<IntakeRow & {
+    customers: { full_name: string; display_phone: string } | null;
+    print_jobs: Array<{ status: string; created_at: string }>;
+  }> | null) ?? [];
+
+  // Compute visit counts from the result set — no extra query needed
+  const customerVisitCounts = new Map<string, number>();
+  for (const intake of intakes) {
+    customerVisitCounts.set(intake.customer_id, (customerVisitCounts.get(intake.customer_id) ?? 0) + 1);
+  }
 
   return intakes.map((intake) => {
-    const customer = customers.get(intake.customer_id);
-    const latestPrintJob = latestPrintJobs.get(intake.id);
+    // print_jobs are ordered by created_at desc from Supabase; take the first (latest)
+    const latestPrintJob = intake.print_jobs.sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
 
     return {
       id: intake.id,
       intakeNumber: intake.intake_number,
-      customerName: customer?.full_name ?? "Неизвестен клиент",
-      customerPhone: customer?.display_phone ?? "Няма телефон",
+      customerName: intake.customers?.full_name ?? "Неизвестен клиент",
+      customerPhone: intake.customers?.display_phone ?? "Няма телефон",
       brand: intake.brand,
       model: intake.model,
       createdAt: intake.created_at,
@@ -320,7 +272,7 @@ export async function getIntakeDirectory(options?: { includeArchived?: boolean; 
       printStatus: getPrintStatusLabel(latestPrintJob?.status),
       chargedAmountLabel: intake.charged_amount ? String(Math.round(Number(intake.charged_amount))) : undefined,
       chargedAmountValue: intake.charged_amount ?? undefined,
-      customerVisitCount: customerIntakeCounts.get(intake.customer_id) ?? 1,
+      customerVisitCount: customerVisitCounts.get(intake.customer_id) ?? 1,
     } satisfies IntakeDirectoryItem;
   });
 }
@@ -329,11 +281,21 @@ export async function getPrintQueueData(limit = 30) {
   const supabase = getSupabaseAdminClient();
   const { data } = await supabase
     .from("print_jobs")
-    .select("id, intake_id, label_asset_url, status, attempt_count, last_error, created_at, updated_at, printed_at")
+    .select(`
+      id, intake_id, label_asset_url, status, attempt_count, last_error, created_at, updated_at, printed_at,
+      intakes ( intake_number, customers ( full_name, display_phone ) )
+    `)
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  const jobs = (data as PrintJobRow[] | null) ?? [];
+  type PrintJobWithRelations = PrintJobRow & {
+    intakes: {
+      intake_number: string;
+      customers: { full_name: string; display_phone: string } | null;
+    } | null;
+  };
+
+  const jobs = (data as PrintJobWithRelations[] | null) ?? [];
   if (jobs.length === 0) {
     return {
       summary: {
@@ -345,25 +307,6 @@ export async function getPrintQueueData(limit = 30) {
       items: [] satisfies PrintQueueItem[],
     };
   }
-
-  const intakeIds = Array.from(new Set(jobs.map((job) => job.intake_id)));
-  const { data: intakesData } = await supabase
-    .from("intakes")
-    .select("id, customer_id, intake_number")
-    .in("id", intakeIds);
-
-  const intakeById = new Map<
-    string,
-    {
-      id: string;
-      customer_id: string;
-      intake_number: string;
-    }
-  >(((intakesData as Array<{ id: string; customer_id: string; intake_number: string }> | null) ?? []).map((intake) => [intake.id, intake]));
-
-  const customers = await getCustomersByIds(
-    Array.from(new Set(((intakesData as Array<{ customer_id: string }> | null) ?? []).map((intake) => intake.customer_id))),
-  );
 
   const summary = jobs.reduce<PrintQueueSummary>(
     (accumulator, job) => {
@@ -387,25 +330,20 @@ export async function getPrintQueueData(limit = 30) {
     },
   );
 
-  const items = jobs.map((job) => {
-    const intake = intakeById.get(job.intake_id);
-    const customer = intake ? customers.get(intake.customer_id) : null;
-
-    return {
-      id: job.id,
-      intakeId: job.intake_id,
-      intakeNumber: intake?.intake_number ?? "Няма номер",
-      customerName: customer?.full_name ?? "Неизвестен клиент",
-      customerPhone: customer?.display_phone ?? "Няма телефон",
-      status: getPrintStatusLabel(job.status),
-      createdAtLabel: formatDateTime(job.created_at),
-      updatedAtLabel: formatDateTime(job.updated_at),
-      printedAtLabel: job.printed_at ? formatDateTime(job.printed_at) : null,
-      attemptCount: job.attempt_count,
-      lastError: job.last_error,
-      labelAssetUrl: job.label_asset_url,
-    } satisfies PrintQueueItem;
-  });
+  const items = jobs.map((job) => ({
+    id: job.id,
+    intakeId: job.intake_id,
+    intakeNumber: job.intakes?.intake_number ?? "Няма номер",
+    customerName: job.intakes?.customers?.full_name ?? "Неизвестен клиент",
+    customerPhone: job.intakes?.customers?.display_phone ?? "Няма телефон",
+    status: getPrintStatusLabel(job.status),
+    createdAtLabel: formatDateTime(job.created_at),
+    updatedAtLabel: formatDateTime(job.updated_at),
+    printedAtLabel: job.printed_at ? formatDateTime(job.printed_at) : null,
+    attemptCount: job.attempt_count,
+    lastError: job.last_error,
+    labelAssetUrl: job.label_asset_url,
+  }));
 
   return { summary, items };
 }

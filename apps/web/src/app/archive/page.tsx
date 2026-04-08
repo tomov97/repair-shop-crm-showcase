@@ -1,16 +1,14 @@
+import { Suspense } from "react";
 import { AppShell } from "@/components/dashboard/app-shell";
 import { IntakeDirectoryView } from "@/components/dashboard/intake-directory-view";
 import { getCurrentUser, requireUser } from "@/lib/auth";
 import { getIntakeDirectory } from "@/lib/dashboard-data";
 
-export default async function ArchivePage() {
-  await requireUser();
-  const user = await getCurrentUser();
-  const items = await getIntakeDirectory({ includeArchived: true, limit: 40 });
-  const archivedItems = items.filter((item) => item.isArchived);
+async function ArchivedIntakesSection() {
+  const archivedItems = await getIntakeDirectory({ archivedOnly: true, limit: 40 });
 
   return (
-    <AppShell activePath="/archive" userEmail={user?.email}>
+    <>
       <section>
         <article className="rounded-[1.75rem] bg-surface-strong px-5 py-4 text-white shadow-[0_24px_80px_rgba(35,68,63,0.16)] sm:px-6">
           <div className="flex flex-row items-center justify-between gap-3">
@@ -29,6 +27,34 @@ export default async function ArchivePage() {
           returnTo="/archive"
         />
       </section>
+    </>
+  );
+}
+
+function ArchivedIntakesSkeleton() {
+  return (
+    <>
+      <section>
+        <div className="h-[68px] animate-pulse rounded-[1.75rem] bg-surface-strong/20" />
+      </section>
+      <section className="mt-6 animate-pulse space-y-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="h-16 rounded-[1.5rem] bg-surface-strong/10" />
+        ))}
+      </section>
+    </>
+  );
+}
+
+export default async function ArchivePage() {
+  await requireUser();
+  const user = await getCurrentUser();
+
+  return (
+    <AppShell activePath="/archive" userEmail={user?.email}>
+      <Suspense fallback={<ArchivedIntakesSkeleton />}>
+        <ArchivedIntakesSection />
+      </Suspense>
     </AppShell>
   );
 }
