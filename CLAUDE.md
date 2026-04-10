@@ -40,13 +40,15 @@ npm run typecheck    # typecheck all
 4. Dashboard shows print status — flags unprinted labels
 5. QR scan opens `/t/{scanToken}` which resolves to intake detail (login-gated)
 
-## Docs
+## Code Map
 
-Read `docs/` before non-trivial changes:
-- `docs/spec-v1.md` — product spec
-- `docs/architecture.md` — system design
-- `docs/data-model.md` — DB schema details
-- `docs/design-system.md` — UI patterns
-- `docs/implementation-roadmap.md` — build plan
-- `docs/operations.md` — deployment/ops
-- `docs/project-agreements.md` — team agreements
+### `apps/web/src/lib/` — server-side data layer
+- `intakes.ts` — all intake CRUD, dashboard data, print job creation, customer matching
+- `dashboard-data.ts` — intake directory queries, trend series, print queue
+- `auth.ts` — getCurrentUser (cached), requireUser (redirects)
+
+### `apps/web/src/app/` — Next.js pages (server components + Suspense streaming)
+### `apps/web/src/components/` — UI components (client components only where needed)
+### `apps/web/src/app/actions/` — server actions (form submissions)
+### `apps/web/src/app/api/` — API routes (search, label generation)
+### `apps/print-agent/` — Windows polling worker (standalone Node.js process)

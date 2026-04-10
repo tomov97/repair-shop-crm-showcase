@@ -45,6 +45,7 @@ Suggested fields:
 - `notes`
 - `is_archived`
 - `charged_amount`
+- `coffee_count`
 - `created_at`
 - `updated_at`
 - `archived_at`

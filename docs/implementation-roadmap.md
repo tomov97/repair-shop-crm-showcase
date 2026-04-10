@@ -1,16 +1,18 @@
 # Implementation Roadmap
 
+> **Status:** All phases complete. The app is built and deployed.
+
 ## Goal
 
 Build the first working product increment in a safe order that preserves the reliability-first decisions already made.
 
-## Phase 0: Documentation Baseline
+## Phase 0: Documentation Baseline (done)
 
 - Finalize the repository foundation documents.
 - Keep the docs as the source of truth for v1.
 - Do not begin feature work until the documentation is accepted.
 
-## Phase 1: App Scaffold
+## Phase 1: App Scaffold (done)
 
 - Create the npm workspace scaffold.
 - Set up the Next.js 16 web app.
@@ -19,7 +21,7 @@ Build the first working product increment in a safe order that preserves the rel
 - Add theme tokens and the Bulgarian-only UI text rule.
 - Set up the initial authentication shell.
 
-## Phase 2: Data and Backend Foundation
+## Phase 2: Data and Backend Foundation (done)
 
 - Create the initial database schema.
 - Add customer and intake creation flows.
@@ -28,21 +30,21 @@ Build the first working product increment in a safe order that preserves the rel
 - Add archive support with charged amount.
 - Add audit events for key changes.
 
-## Phase 3: Intake Flow
+## Phase 3: Intake Flow (done)
 
 - Build the intake form for mobile and desktop.
 - Implement create-intake submission.
 - Generate intake number and scan token on the backend.
 - Add duplicate submission protection.
 
-## Phase 4: QR and Retrieval
+## Phase 4: QR and Retrieval (done)
 
 - Implement QR route resolution.
 - Add intake detail screen.
 - Add universal search for phone, name, and intake number.
 - Add active/archive result handling with current-first ranking.
 
-## Phase 5: Label Generation and Printing
+## Phase 5: Label Generation and Printing (done)
 
 - Generate print-ready labels with company logo, QR code, and intake number.
 - Add queued print job creation after intake save.
@@ -50,7 +52,7 @@ Build the first working product increment in a safe order that preserves the rel
 - Add print success and failure tracking.
 - Add reprint from the intake detail page.
 
-## Phase 6: Reliability Pass
+## Phase 6: Reliability Pass (done)
 
 - Add visible print failure states.
 - Add offline intake queue behavior for mobile.
@@ -58,7 +60,7 @@ Build the first working product increment in a safe order that preserves the rel
 - Validate PC downtime behavior.
 - Validate damaged-label recovery through search and reprint.
 
-## Phase 7: Acceptance and Hardening
+## Phase 7: Acceptance and Hardening (done)
 
 - Test the core mobile flow end to end.
 - Test the core desktop flow end to end.

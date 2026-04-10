@@ -94,7 +94,7 @@ Excluded from v1:
 - Printing goes through a Windows print host during work hours.
 - The printer should sit near that machine.
 - USB is the default reliability-first assumption.
-- The printer family will be Brother, but the exact model is still TBD.
+- The printer is a Brother QL-800 connected via USB.
 - A Wi-Fi-capable Brother printer is acceptable later if needed, but not required for the architecture.
 - Intake must always save before printing.
 - Printing happens through a queued `print_jobs` model.
@@ -163,7 +163,6 @@ Excluded from v1:
 
 ## Still TBD
 
-- Exact Brother printer model
 - Final production hosting and domain
 - SMTP or custom email setup if needed later
 - Future automation features such as Viber messaging and workflow auto-moves
