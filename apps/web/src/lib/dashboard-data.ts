@@ -249,10 +249,15 @@ export async function getIntakeDirectory(options?: { includeArchived?: boolean; 
     print_jobs: Array<{ status: string; created_at: string }>;
   }> | null) ?? [];
 
-  // Compute visit counts from the result set — no extra query needed
+  const uniqueCustomerIds = [...new Set(intakes.map((i) => i.customer_id))];
+  const { data: visitCountRows } = await supabase
+    .from("intakes")
+    .select("customer_id")
+    .in("customer_id", uniqueCustomerIds);
+
   const customerVisitCounts = new Map<string, number>();
-  for (const intake of intakes) {
-    customerVisitCounts.set(intake.customer_id, (customerVisitCounts.get(intake.customer_id) ?? 0) + 1);
+  for (const row of (visitCountRows as Array<{ customer_id: string }> | null) ?? []) {
+    customerVisitCounts.set(row.customer_id, (customerVisitCounts.get(row.customer_id) ?? 0) + 1);
   }
 
   return intakes.map((intake) => {

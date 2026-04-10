@@ -6,17 +6,8 @@ import { ArchiveIntakeForm } from "@/components/intakes/archive-intake-form";
 import { PricePopout } from "@/components/intakes/price-popout";
 
 function formatCardDate(value: string) {
-  const parsedDate = new Date(value);
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return (value.split(",")[0] ?? value).replace(/\s*г\.$/, "");
-  }
-
-  return new Intl.DateTimeFormat("bg-BG", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(parsedDate);
+  // value is already formatted as "DD.MM.YYYY HH:mm" — just strip the time
+  return value.split(" ")[0] ?? value;
 }
 
 export function SummaryCard({

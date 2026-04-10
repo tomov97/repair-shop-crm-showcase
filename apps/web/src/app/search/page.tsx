@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/dashboard/app-shell";
 import { IntakeDirectoryView } from "@/components/dashboard/intake-directory-view";
+import { SearchBar } from "@/components/dashboard/search-bar";
 import { getCurrentUser, requireUser } from "@/lib/auth";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { formatDate, normalizePhoneNumber } from "@/lib/utils";
@@ -154,13 +155,13 @@ export default async function SearchPage({
           <div className="flex flex-row items-center justify-between gap-3">
             <div className="min-w-0">
               <h1 className="text-2xl font-semibold tracking-tight leading-tight">Резултати от търсене</h1>
-              {trimmed ? (
-                <p className="mt-1 text-sm text-white/60 truncate">„{trimmed}"</p>
-              ) : null}
             </div>
             <div className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold text-white/90 backdrop-blur-sm shrink-0">
               {items.length}
             </div>
+          </div>
+          <div className="mt-3">
+            <SearchBar variant="page" initialQuery={trimmed} />
           </div>
         </article>
       </section>

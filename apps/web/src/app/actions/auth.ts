@@ -62,7 +62,7 @@ export async function signInAction(
     };
   }
 
-  redirect(safeRedirectUrl(validatedFields.data.redirectTo, "/dashboard"));
+  redirect(safeRedirectUrl(validatedFields.data.redirectTo, "/intakes"));
 }
 
 export async function signOutAction() {
@@ -132,5 +132,5 @@ export async function bootstrapOwnerAction(
     };
   }
 
-  redirect(safeRedirectUrl(validatedFields.data.redirectTo, "/dashboard"));
+  redirect(safeRedirectUrl(validatedFields.data.redirectTo, "/intakes"));
 }

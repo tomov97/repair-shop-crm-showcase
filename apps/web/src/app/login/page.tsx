@@ -29,7 +29,7 @@ export default async function LoginPage({
             </p>
           </div>
 
-          <LoginForm redirectTo={next || "/dashboard"} />
+          <LoginForm redirectTo={next || "/intakes"} />
 
           {!setupStatus.hasUsers && setupStatus.setupAvailable ? (
             <p className="mt-6 rounded-2xl border border-dashed border-border bg-background px-4 py-4 text-sm text-muted">

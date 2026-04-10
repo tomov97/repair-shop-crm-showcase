@@ -269,10 +269,15 @@ export async function getDashboardData(): Promise<DashboardData> {
 
   const recentIntakes = recentIntakesResult.data as unknown as RecentIntakeRow[];
 
-  // Compute visit counts from the result set — no extra query needed
+  const uniqueCustomerIds = [...new Set(recentIntakes.map((i) => i.customer_id))];
+  const { data: visitCountRows } = await supabase
+    .from("intakes")
+    .select("customer_id")
+    .in("customer_id", uniqueCustomerIds);
+
   const customerVisitCounts = new Map<string, number>();
-  for (const intake of recentIntakes) {
-    customerVisitCounts.set(intake.customer_id, (customerVisitCounts.get(intake.customer_id) ?? 0) + 1);
+  for (const row of (visitCountRows as Array<{ customer_id: string }> | null) ?? []) {
+    customerVisitCounts.set(row.customer_id, (customerVisitCounts.get(row.customer_id) ?? 0) + 1);
   }
 
   return {
@@ -306,7 +311,7 @@ export async function getDashboardData(): Promise<DashboardData> {
 export async function getIntakeDetail(intakeId: string): Promise<IntakeDetail | null> {
   const supabase = getSupabaseAdminClient();
 
-  const [intakeResult, relatedIntakesResult, printJobsResult] = await Promise.all([
+  const [intakeResult, printJobsResult] = await Promise.all([
     supabase
       .from("intakes")
       .select(`
@@ -316,12 +321,6 @@ export async function getIntakeDetail(intakeId: string): Promise<IntakeDetail | 
       `)
       .eq("id", intakeId)
       .maybeSingle(),
-    supabase
-      .from("intakes")
-      .select("id, intake_number, brand, model, is_archived, created_at, customer_id")
-      .neq("id", intakeId)
-      .order("created_at", { ascending: false })
-      .limit(50), // fetched broadly; filter by customer_id below once we know it
     supabase
       .from("print_jobs")
       .select("id, status, last_error, created_at, updated_at, printed_at")
@@ -338,17 +337,22 @@ export async function getIntakeDetail(intakeId: string): Promise<IntakeDetail | 
     return null;
   }
 
+  const relatedIntakesResult = await supabase
+    .from("intakes")
+    .select("id, intake_number, brand, model, is_archived, created_at")
+    .eq("customer_id", intake.customer_id)
+    .neq("id", intakeId)
+    .order("created_at", { ascending: false })
+    .limit(6);
+
   const previousIntakes = (relatedIntakesResult.data as Array<{
     id: string;
-    customer_id: string;
     intake_number: string;
     brand: string;
     model: string;
     is_archived: boolean;
     created_at: string;
-  }> | null)
-    ?.filter((item) => item.customer_id === intake.customer_id)
-    .slice(0, 6) ?? [];
+  }> | null) ?? [];
 
   const printJobs = (printJobsResult.data as Array<{
     id: string;
@@ -448,6 +452,13 @@ export async function createIntake(input: CreateIntakeInput): Promise<CreateInta
   const normalizedPhone = normalizePhoneNumber(input.phoneNumber);
   const scanToken = buildScanToken(input.submissionToken);
 
+  if (!normalizedPhone) {
+    return {
+      type: "error",
+      message: "Въведи валиден телефонен номер (само цифри).",
+    };
+  }
+
   const { data: existingIntake, error: existingIntakeError } = await supabase
     .from("intakes")
     .select("id")
@@ -487,15 +498,6 @@ export async function createIntake(input: CreateIntakeInput): Promise<CreateInta
 
   let customerId = exactMatch?.id ?? null;
   let auditEventType = exactMatch ? "customer_auto_linked" : "customer_created";
-
-  if (exactMatch && exactMatch.display_phone !== input.phoneNumber) {
-    await supabase
-      .from("customers")
-      .update({
-        display_phone: input.phoneNumber.trim(),
-      })
-      .eq("id", exactMatch.id);
-  }
 
   if (!customerId) {
     if (phoneMatches.length > 1 && !input.customerResolution) {
@@ -762,6 +764,14 @@ export async function updateIntake(input: {
 }): Promise<UpdateIntakeResult> {
   const supabase = getSupabaseAdminClient();
   const normalizedPhone = normalizePhoneNumber(input.phoneNumber);
+
+  if (!normalizedPhone) {
+    return {
+      type: "error",
+      message: "Въведи валиден телефонен номер (само цифри).",
+    };
+  }
+
   const { data: existingIntake, error: existingIntakeError } = await supabase
     .from("intakes")
     .select("id, customer_id, brand, model, issue_description")

@@ -37,7 +37,7 @@ async function renderLabelSvg(
   scanToken: string,
   logoDataUrl: string | null,
 ): Promise<string> {
-  const safeIntakeNumber = intakeNumber.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const safeIntakeNumber = intakeNumber.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   const scanUrl = getAbsoluteUrl(`/t/${scanToken}`);
   const qrDataUrl = await buildQrDataUrl(scanUrl);
 

@@ -57,11 +57,10 @@ export function formatDate(value: string | null) {
   }
 
   const d = new Date(value);
-  return new Intl.DateTimeFormat("bg-BG", {
-    day: "numeric",
-    month: "numeric",
-    year: "numeric",
-  }).format(d).replace(/\s*г\./, "");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${dd}.${mm}.${yyyy}`;
 }
 
 export function formatDateTime(value: string | null) {
@@ -70,11 +69,10 @@ export function formatDateTime(value: string | null) {
   }
 
   const d = new Date(value);
-  const date = new Intl.DateTimeFormat("bg-BG", {
-    day: "numeric",
-    month: "numeric",
-    year: "numeric",
-  }).format(d).replace(/\s*г\./, "");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  const date = `${dd}.${mm}.${yyyy}`;
   const time = new Intl.DateTimeFormat("bg-BG", {
     hour: "2-digit",
     minute: "2-digit",

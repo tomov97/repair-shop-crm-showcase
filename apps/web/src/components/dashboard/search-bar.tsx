@@ -8,7 +8,8 @@ import type { SearchResult } from "@/app/api/search/route";
 
 type SidebarProps = { variant: "sidebar" };
 type OverlayProps = { variant: "overlay"; isOpen: boolean; onClose: () => void };
-type SearchBarProps = SidebarProps | OverlayProps;
+type PageProps = { variant: "page"; initialQuery?: string };
+type SearchBarProps = SidebarProps | OverlayProps | PageProps;
 
 // ── Result card ───────────────────────────────────────────────────────────────
 
@@ -56,6 +57,7 @@ function DropdownPortal({
   onClickOutside: () => void;
 }) {
   const [rect, setRect] = useState<DOMRect | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Update position on mount and on scroll/resize
   useEffect(() => {
@@ -73,10 +75,13 @@ function DropdownPortal({
     };
   }, [anchorRef]);
 
-  // Click outside
+  // Click outside — exclude both the anchor and the portal dropdown itself
   useEffect(() => {
     function handleMouseDown(e: MouseEvent) {
-      if (anchorRef.current && !anchorRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const inAnchor = anchorRef.current?.contains(target);
+      const inDropdown = dropdownRef.current?.contains(target);
+      if (!inAnchor && !inDropdown) {
         onClickOutside();
       }
     }
@@ -88,6 +93,7 @@ function DropdownPortal({
 
   return createPortal(
     <div
+      ref={dropdownRef}
       style={{
         position: "fixed",
         top: rect.bottom + 8,
@@ -176,7 +182,7 @@ function SearchInput({
 
 export function SearchBar(props: SearchBarProps) {
   const router = useRouter();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(props.variant === "page" ? (props.initialQuery ?? "") : "");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -185,11 +191,18 @@ export function SearchBar(props: SearchBarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const latestQueryRef = useRef("");
+  // Tracks whether the query has changed from its initial value (suppresses auto-fetch on mount)
+  const queryDirtyRef = useRef(props.variant !== "page");
 
   // Debounced fetch
   useEffect(() => {
     const trimmed = query.trim();
     latestQueryRef.current = trimmed;
+
+    if (!queryDirtyRef.current) {
+      queryDirtyRef.current = true;
+      return;
+    }
 
     if (trimmed.length < 2) {
       setResults([]);
@@ -224,6 +237,13 @@ export function SearchBar(props: SearchBarProps) {
     setIsOpen(false);
     setFocusedIndex(-1);
   }, []);
+
+  // Close page-variant dropdown on scroll
+  useEffect(() => {
+    if (props.variant !== "page" || !isOpen) return;
+    window.addEventListener("scroll", closeDropdown, { passive: true, capture: true });
+    return () => window.removeEventListener("scroll", closeDropdown, { capture: true });
+  }, [props.variant, isOpen, closeDropdown]);
 
   function navigateToSearchPage() {
     const q = query.trim();
@@ -308,6 +328,40 @@ export function SearchBar(props: SearchBarProps) {
               Виж всички резултати →
             </button>
           </DropdownPortal>
+        ) : null}
+      </div>
+    );
+  }
+
+  // ── Page variant (search results page) ────────────────────────────────────
+  if (props.variant === "page") {
+    return (
+      <div
+        ref={containerRef}
+        className="relative"
+        onBlur={(e) => {
+          // Close dropdown when focus leaves the entire container
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+            closeDropdown();
+          }
+        }}
+      >
+        <SearchInput
+          value={query}
+          onChange={setQuery}
+          onKeyDown={handleKeyDown}
+          inputRef={inputRef}
+          isLoading={isLoading}
+          placeholder="Ново търсене…"
+          className="w-full rounded-xl border border-border bg-white pl-8 pr-8 py-2.5 text-sm text-[#101614] placeholder:text-[#60726d] outline-none focus:ring-2 focus:ring-[#23443f]/20 [&::-webkit-search-cancel-button]:hidden"
+        />
+
+        {isOpen && results.length > 0 ? (
+          <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl bg-white shadow-[0_8px_32px_rgba(35,68,63,0.25)] overflow-hidden max-h-[60vh] overflow-y-auto">
+            {results.map((r, i) => (
+              <ResultCard key={r.id} result={r} focused={i === focusedIndex} onSelect={handleSelect} />
+            ))}
+          </div>
         ) : null}
       </div>
     );
