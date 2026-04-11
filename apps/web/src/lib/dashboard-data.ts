@@ -1,17 +1,6 @@
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { formatDateTime } from "@/lib/utils";
 
-type IntakeRow = {
-  id: string;
-  customer_id: string;
-  intake_number: string;
-  brand: string;
-  model: string;
-  is_archived: boolean;
-  charged_amount: string | null;
-  created_at: string;
-};
-
 type PrintJobRow = {
   id: string;
   intake_id: string;
@@ -221,65 +210,48 @@ export async function getIntakeTrendSeries() {
   return buildTrendPoints(createdAtValues);
 }
 
+type IntakeDirectoryRpcRow = {
+  id: string;
+  customer_id: string;
+  intake_number: string;
+  brand: string;
+  model: string;
+  is_archived: boolean;
+  charged_amount: string | null;
+  created_at: string;
+  customer_full_name: string | null;
+  customer_display_phone: string | null;
+  latest_print_status: string | null;
+  customer_visit_count: number;
+};
+
 export async function getIntakeDirectory(options?: { includeArchived?: boolean; archivedOnly?: boolean; limit?: number }) {
   const limit = options?.limit ?? 30;
   const supabase = getSupabaseAdminClient();
 
-  let query = supabase
-    .from("intakes")
-    .select(`
-      id, customer_id, intake_number, brand, model, is_archived, charged_amount, created_at,
-      customers ( full_name, display_phone ),
-      print_jobs ( status, created_at )
-    `)
-    .order("created_at", { ascending: false })
-    .limit(limit);
-
-  if (options?.archivedOnly) {
-    query = query.eq("is_archived", true);
-  } else if (!options?.includeArchived) {
-    query = query.eq("is_archived", false);
-  } else {
-    query = query.order("is_archived", { ascending: true });
-  }
-
-  const { data } = await query;
-  const intakes = (data as Array<IntakeRow & {
-    customers: { full_name: string; display_phone: string } | null;
-    print_jobs: Array<{ status: string; created_at: string }>;
-  }> | null) ?? [];
-
-  const uniqueCustomerIds = [...new Set(intakes.map((i) => i.customer_id))];
-  const { data: visitCountRows } = await supabase
-    .from("intakes")
-    .select("customer_id")
-    .in("customer_id", uniqueCustomerIds);
-
-  const customerVisitCounts = new Map<string, number>();
-  for (const row of (visitCountRows as Array<{ customer_id: string }> | null) ?? []) {
-    customerVisitCounts.set(row.customer_id, (customerVisitCounts.get(row.customer_id) ?? 0) + 1);
-  }
-
-  return intakes.map((intake) => {
-    // print_jobs are ordered by created_at desc from Supabase; take the first (latest)
-    const latestPrintJob = intake.print_jobs.sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
-
-    return {
-      id: intake.id,
-      intakeNumber: intake.intake_number,
-      customerName: intake.customers?.full_name ?? "Неизвестен клиент",
-      customerPhone: intake.customers?.display_phone ?? "Няма телефон",
-      brand: intake.brand,
-      model: intake.model,
-      createdAt: intake.created_at,
-      createdAtLabel: formatDateTime(intake.created_at),
-      isArchived: intake.is_archived,
-      printStatus: getPrintStatusLabel(latestPrintJob?.status),
-      chargedAmountLabel: intake.charged_amount ? String(Math.round(Number(intake.charged_amount))) : undefined,
-      chargedAmountValue: intake.charged_amount ?? undefined,
-      customerVisitCount: customerVisitCounts.get(intake.customer_id) ?? 1,
-    } satisfies IntakeDirectoryItem;
+  const { data } = await supabase.rpc("get_intake_directory", {
+    p_limit: limit,
+    p_archived_only: options?.archivedOnly ?? false,
+    p_include_archived: options?.includeArchived ?? false,
   });
+
+  const rows = (data as IntakeDirectoryRpcRow[] | null) ?? [];
+
+  return rows.map((row) => ({
+    id: row.id,
+    intakeNumber: row.intake_number,
+    customerName: row.customer_full_name ?? "Неизвестен клиент",
+    customerPhone: row.customer_display_phone ?? "Няма телефон",
+    brand: row.brand,
+    model: row.model,
+    createdAt: row.created_at,
+    createdAtLabel: formatDateTime(row.created_at),
+    isArchived: row.is_archived,
+    printStatus: getPrintStatusLabel(row.latest_print_status ?? undefined),
+    chargedAmountLabel: row.charged_amount ? String(Math.round(Number(row.charged_amount))) : undefined,
+    chargedAmountValue: row.charged_amount ?? undefined,
+    customerVisitCount: Number(row.customer_visit_count ?? 1),
+  } satisfies IntakeDirectoryItem));
 }
 
 export async function getPrintQueueData(limit = 30) {
