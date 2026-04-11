@@ -202,25 +202,14 @@ async function insertAuditEvent(event: AuditEventInsert) {
   await supabase.from("audit_events").insert(event);
 }
 
-async function getNextIntakeNumber(supabase = getSupabaseAdminClient(), now = new Date()) {
-  const year = now.getFullYear().toString().slice(-2);
-  const month = `${now.getMonth() + 1}`.padStart(2, "0");
-  const day = `${now.getDate()}`.padStart(2, "0");
-  const prefix = `SC-${day}/${month}/${year}-`;
+async function getNextIntakeNumber(supabase = getSupabaseAdminClient()) {
+  const { data, error } = await supabase.rpc("next_intake_number");
 
-  const { data } = await supabase
-    .from("intakes")
-    .select("intake_number")
-    .like("intake_number", `${prefix}%`)
-    .order("intake_number", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  if (error || !data) {
+    throw error ?? new Error("next_intake_number returned empty result");
+  }
 
-  const lastValue = data?.intake_number as string | undefined;
-  const lastSequence = lastValue ? Number(lastValue.slice(prefix.length)) : 0;
-  const nextSequence = `${lastSequence + 1}`.padStart(6, "0");
-
-  return `${prefix}${nextSequence}`;
+  return data as string;
 }
 
 export async function getDashboardData(): Promise<DashboardData> {
@@ -546,63 +535,47 @@ export async function createIntake(input: CreateIntakeInput): Promise<CreateInta
     };
   }
 
-  let intakeId: string | null = null;
+  const intakeNumber = await getNextIntakeNumber(supabase);
+  const { data: createdIntake, error: createIntakeError } = await supabase
+    .from("intakes")
+    .insert({
+      customer_id: customerId,
+      intake_number: intakeNumber,
+      scan_token: scanToken,
+      brand: input.brand.trim(),
+      model: input.model.trim(),
+      issue_description: input.issueDescription.trim(),
+      notes: input.notes?.trim() || null,
+      is_archived: false,
+      charged_amount: input.chargedAmount ?? null,
+    })
+    .select("id")
+    .single();
 
-  for (let attempt = 0; attempt < 5; attempt += 1) {
-    const intakeNumber = await getNextIntakeNumber(supabase);
-    const { data: createdIntake, error: createIntakeError } = await supabase
+  if (createIntakeError?.code === "23505" && createIntakeError.message.includes("scan_token")) {
+    const { data: duplicateIntake } = await supabase
       .from("intakes")
-      .insert({
-        customer_id: customerId,
-        intake_number: intakeNumber,
-        scan_token: scanToken,
-        brand: input.brand.trim(),
-        model: input.model.trim(),
-        issue_description: input.issueDescription.trim(),
-        notes: input.notes?.trim() || null,
-        is_archived: false,
-        charged_amount: input.chargedAmount ?? null,
-      })
       .select("id")
-      .single();
+      .eq("scan_token", scanToken)
+      .maybeSingle();
 
-    if (!createIntakeError && createdIntake) {
-      intakeId = createdIntake.id;
-      break;
+    if (duplicateIntake?.id) {
+      return {
+        type: "success",
+        intakeId: duplicateIntake.id,
+        printJobQueued: true,
+      };
     }
+  }
 
-    if (createIntakeError?.code === "23505" && createIntakeError.message.includes("scan_token")) {
-      const { data: duplicateIntake } = await supabase
-        .from("intakes")
-        .select("id")
-        .eq("scan_token", scanToken)
-        .maybeSingle();
-
-      if (duplicateIntake?.id) {
-        return {
-          type: "success",
-          intakeId: duplicateIntake.id,
-          printJobQueued: true,
-        };
-      }
-    }
-
-    if (createIntakeError?.code === "23505" && createIntakeError.message.includes("intake_number")) {
-      continue;
-    }
-
+  if (createIntakeError || !createdIntake) {
     return {
       type: "error",
       message: mapErrorMessage(createIntakeError, "Не успяхме да запазим приемането."),
     };
   }
 
-  if (!intakeId) {
-    return {
-      type: "error",
-      message: "Не успяхме да генерираме уникален номер за приемане.",
-    };
-  }
+  const intakeId = createdIntake.id;
 
   const { error: printJobError } = await supabase.from("print_jobs").insert({
     intake_id: intakeId,
