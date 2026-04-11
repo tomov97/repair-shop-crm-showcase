@@ -22,6 +22,7 @@ export function ArchiveIntakeForm({
   iconOnly?: boolean;
 }) {
   const [state, formAction] = useActionState(archiveIntakeAction, initialState);
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     const shouldArchive = window.confirm("Сигурни ли сте, че искате да архивирате това приемане?");
     if (!shouldArchive) {

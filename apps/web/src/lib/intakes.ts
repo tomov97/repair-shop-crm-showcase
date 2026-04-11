@@ -943,19 +943,12 @@ export async function archiveIntake(input: {
 
   const chargedAmount = input.chargedAmount ?? (existingIntake.charged_amount ? Number(existingIntake.charged_amount) : null);
 
-  if (chargedAmount === null || !Number.isFinite(chargedAmount) || chargedAmount <= 0) {
-    return {
-      type: "error",
-      message: "Първо запази валидна сума за плащане.",
-    };
-  }
-
   const archivedAt = new Date().toISOString();
   const { error: archiveError } = await supabase
     .from("intakes")
     .update({
       is_archived: true,
-      charged_amount: chargedAmount,
+      ...(chargedAmount !== null && Number.isFinite(chargedAmount) ? { charged_amount: chargedAmount } : {}),
       archived_at: archivedAt,
     })
     .eq("id", input.intakeId)

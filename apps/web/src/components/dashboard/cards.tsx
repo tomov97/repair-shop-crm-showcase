@@ -67,7 +67,7 @@ export function IntakeListCard({
             tabIndex={0}
             onClick={() => router.push(`/intakes/${intake.id}`)}
             onKeyDown={(e) => { if (e.key === "Enter") router.push(`/intakes/${intake.id}`); }}
-            className="relative cursor-pointer overflow-hidden rounded-2xl border border-[#e8e4d4] bg-[#fbfaf4] px-4 py-3.5 pl-5 text-[#23443f] shadow-[0_2px_10px_rgba(80,60,20,0.08)] transition hover:brightness-[1.02] before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-[#23443f]"
+            className="relative cursor-pointer overflow-hidden rounded-2xl border border-[#e8e4d4] bg-[#fbfaf4] px-4 py-3.5 pl-5 text-[#23443f] shadow-[0_2px_10px_rgba(80,60,20,0.08)] transition hover:brightness-[1.02] active:scale-[0.985] active:brightness-95 before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-[#23443f]"
           >
             {/* Mobile layout */}
             <div className="lg:hidden">
