@@ -3,7 +3,7 @@ import { IntakeDirectoryView } from "@/components/dashboard/intake-directory-vie
 import { SearchBar } from "@/components/dashboard/search-bar";
 import { getCurrentUser, requireUser } from "@/lib/auth";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
-import { formatDate, normalizePhoneNumber } from "@/lib/utils";
+import { formatDate, formatDateTime, normalizePhoneNumber } from "@/lib/utils";
 import type { IntakeDirectoryItem } from "@/lib/dashboard-data";
 
 function escapeIlike(value: string) {
@@ -60,7 +60,7 @@ async function searchIntakes(q: string): Promise<IntakeDirectoryItem[]> {
   if (dateRange) {
     const { data } = await adminClient
       .from("intakes")
-      .select("id, customer_id, intake_number, brand, model, is_archived, created_at")
+      .select("id, customer_id, intake_number, brand, model, is_archived, created_at, archived_at")
       .gte("created_at", dateRange.from)
       .lte("created_at", dateRange.to)
       .order("created_at", { ascending: false })
@@ -79,7 +79,7 @@ async function searchIntakes(q: string): Promise<IntakeDirectoryItem[]> {
       adminClient.from("customers").select("id").or(customerOrParts.join(",")),
       adminClient
         .from("intakes")
-        .select("id, customer_id, intake_number, brand, model, is_archived, created_at")
+        .select("id, customer_id, intake_number, brand, model, is_archived, created_at, archived_at")
         .or(
           `intake_number.ilike.%${escaped}%,brand.ilike.%${escaped}%,model.ilike.%${escaped}%,issue_description.ilike.%${escaped}%,notes.ilike.%${escaped}%`
         )
@@ -92,7 +92,7 @@ async function searchIntakes(q: string): Promise<IntakeDirectoryItem[]> {
     if (customerIds.length > 0) {
       const { data } = await adminClient
         .from("intakes")
-        .select("id, customer_id, intake_number, brand, model, is_archived, created_at")
+        .select("id, customer_id, intake_number, brand, model, is_archived, created_at, archived_at")
         .in("customer_id", customerIds)
         .order("created_at", { ascending: false })
         .limit(100);
@@ -129,6 +129,10 @@ async function searchIntakes(q: string): Promise<IntakeDirectoryItem[]> {
       model: intake.model,
       createdAt: intake.created_at,
       createdAtLabel: formatDate(intake.created_at),
+      archivedAt: (intake as { archived_at?: string | null }).archived_at ?? null,
+      archivedAtLabel: (intake as { archived_at?: string | null }).archived_at
+        ? formatDateTime((intake as { archived_at?: string | null }).archived_at!)
+        : null,
       isArchived: intake.is_archived,
       printStatus: "",
       customerVisitCount: 1,

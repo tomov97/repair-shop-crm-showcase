@@ -123,9 +123,11 @@ function DateFilter({
 function IntakeCard({
   intake,
   returnTo,
+  displayDateLabel,
 }: {
   intake: IntakeDirectoryItem;
   returnTo: string;
+  displayDateLabel: string;
 }) {
   const router = useRouter();
 
@@ -165,7 +167,7 @@ function IntakeCard({
         </div>
         <div className="mt-1.5 flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center gap-2">
-            <p className="text-sm text-[#23443f]/50">{formatCardDate(intake.createdAtLabel)}</p>
+            <p className="text-sm text-[#23443f]/50">{formatCardDate(displayDateLabel)}</p>
             {(intake.customerVisitCount ?? 1) > 1 ? (
               <span className="inline-flex rounded-full border border-[#e0d1a7] bg-[#fbf3de] px-2 py-[3px] text-[11px] font-medium leading-none text-[#7b6530]">
                 Повторен
@@ -184,11 +186,11 @@ function IntakeCard({
             {intake.isArchived ? <StatusPill label="Архивиран" archived /> : null}
           </div>
           <p className="mt-0.5 text-sm font-medium text-[#7b6530]">{intake.brand} {intake.model}</p>
-          <p className="mt-0.5 text-sm text-[#23443f]/50">{formatCardDate(intake.createdAtLabel)}</p>
+          <p className="mt-0.5 text-sm text-[#23443f]/50">{formatCardDate(displayDateLabel)}</p>
         </div>
         <div className="text-center">
           <p className="text-base font-semibold text-[#23443f]">{intake.intakeNumber}</p>
-          <p className="text-sm text-[#23443f]/60">{formatCardDate(intake.createdAtLabel)}</p>
+          <p className="text-sm text-[#23443f]/60">{formatCardDate(displayDateLabel)}</p>
         </div>
         <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
           {(intake.customerVisitCount ?? 1) > 1 ? (
@@ -221,32 +223,39 @@ export function IntakeDirectoryView({
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
+  // When all items are archived, group/sort/filter by archived date; otherwise use created date.
+  const allArchived = items.length > 0 && items.every((item) => item.isArchived);
+
+  const getSortKey = (item: IntakeDirectoryItem) =>
+    allArchived && item.archivedAt ? item.archivedAt : item.createdAt;
+
   const filtered = useMemo(() => {
     let result = [...items];
 
     if (dateFrom) {
       const from = new Date(dateFrom + "T00:00:00");
-      result = result.filter((item) => new Date(item.createdAt) >= from);
+      result = result.filter((item) => new Date(getSortKey(item)) >= from);
     }
 
     if (dateTo) {
       const to = new Date(dateTo + "T23:59:59");
-      result = result.filter((item) => new Date(item.createdAt) <= to);
+      result = result.filter((item) => new Date(getSortKey(item)) <= to);
     }
 
     result.sort((a, b) => {
-      const diff = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      const diff = new Date(getSortKey(b)).getTime() - new Date(getSortKey(a)).getTime();
       return sort === "newest" ? diff : -diff;
     });
 
     return result;
-  }, [items, sort, dateFrom, dateTo]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, sort, dateFrom, dateTo, allArchived]);
 
-  // Group by local calendar day
+  // Group by local calendar day (using archive date for archived views)
   const grouped = useMemo(() => {
     const groups: Array<{ dateKey: string; items: IntakeDirectoryItem[] }> = [];
     for (const item of filtered) {
-      const key = toLocalDateKey(item.createdAt);
+      const key = toLocalDateKey(getSortKey(item));
       const last = groups[groups.length - 1];
       if (last && last.dateKey === key) {
         last.items.push(item);
@@ -255,7 +264,8 @@ export function IntakeDirectoryView({
       }
     }
     return groups;
-  }, [filtered]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtered, allArchived]);
 
   return (
     <div>
@@ -292,7 +302,12 @@ export function IntakeDirectoryView({
               </div>
               <div className="space-y-3">
                 {group.items.map((intake) => (
-                  <IntakeCard key={intake.id} intake={intake} returnTo={returnTo} />
+                  <IntakeCard
+                    key={intake.id}
+                    intake={intake}
+                    returnTo={returnTo}
+                    displayDateLabel={allArchived && intake.archivedAtLabel ? intake.archivedAtLabel : intake.createdAtLabel}
+                  />
                 ))}
               </div>
             </div>

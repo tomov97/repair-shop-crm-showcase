@@ -51,16 +51,19 @@ export function generateIntakeNumber(now = new Date()) {
   return `KM-${day}/${month}/${year}-${suffix}`;
 }
 
+const SOFIA_TZ = "Europe/Sofia";
+
 export function formatDate(value: string | null) {
   if (!value) {
     return "Няма дата";
   }
 
-  const d = new Date(value);
-  const dd = String(d.getDate()).padStart(2, "0");
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const yyyy = d.getFullYear();
-  return `${dd}.${mm}.${yyyy}`;
+  return new Intl.DateTimeFormat("bg-BG", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: SOFIA_TZ,
+  }).format(new Date(value)).replace(/\//g, ".");
 }
 
 export function formatDateTime(value: string | null) {
@@ -69,13 +72,16 @@ export function formatDateTime(value: string | null) {
   }
 
   const d = new Date(value);
-  const dd = String(d.getDate()).padStart(2, "0");
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const yyyy = d.getFullYear();
-  const date = `${dd}.${mm}.${yyyy}`;
+  const date = new Intl.DateTimeFormat("bg-BG", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: SOFIA_TZ,
+  }).format(d).replace(/\//g, ".");
   const time = new Intl.DateTimeFormat("bg-BG", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: SOFIA_TZ,
   }).format(d);
   return `${date} ${time}`;
 }

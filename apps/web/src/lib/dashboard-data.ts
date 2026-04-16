@@ -40,6 +40,8 @@ export type IntakeDirectoryItem = {
   model: string;
   createdAt: string;
   createdAtLabel: string;
+  archivedAt: string | null;
+  archivedAtLabel: string | null;
   isArchived: boolean;
   printStatus: string;
   chargedAmountLabel?: string;
@@ -219,6 +221,7 @@ type IntakeDirectoryRpcRow = {
   is_archived: boolean;
   charged_amount: string | null;
   created_at: string;
+  archived_at: string | null;
   customer_full_name: string | null;
   customer_display_phone: string | null;
   latest_print_status: string | null;
@@ -246,6 +249,8 @@ export async function getIntakeDirectory(options?: { includeArchived?: boolean; 
     model: row.model,
     createdAt: row.created_at,
     createdAtLabel: formatDateTime(row.created_at),
+    archivedAt: row.archived_at ?? null,
+    archivedAtLabel: row.archived_at ? formatDateTime(row.archived_at) : null,
     isArchived: row.is_archived,
     printStatus: getPrintStatusLabel(row.latest_print_status ?? undefined),
     chargedAmountLabel: row.charged_amount ? String(Math.round(Number(row.charged_amount))) : undefined,
