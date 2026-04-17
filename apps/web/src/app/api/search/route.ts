@@ -8,6 +8,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 export type SearchResult = {
   id: string;
   intakeNumber: string;
+  intakeType: string;
   customerName: string;
   customerPhone: string;
   brand: string;
@@ -99,7 +100,7 @@ export async function GET(request: Request) {
   if (dateRange) {
     const { data: dateIntakes } = await adminClient
       .from("intakes")
-      .select("id, customer_id, intake_number, brand, model, is_archived, created_at")
+      .select("id, customer_id, intake_number, intake_type, brand, model, is_archived, created_at")
       .gte("created_at", dateRange.from)
       .lte("created_at", dateRange.to)
       .order("created_at", { ascending: false })
@@ -122,6 +123,7 @@ export async function GET(request: Request) {
       return {
         id: intake.id,
         intakeNumber: intake.intake_number,
+        intakeType: (intake as { intake_type?: string }).intake_type ?? "service",
         customerName: customer?.full_name ?? "—",
         customerPhone: customer?.display_phone ?? "—",
         brand: intake.brand,
@@ -150,7 +152,7 @@ export async function GET(request: Request) {
     // Intake field search: intake_number, brand, model, description, notes
     adminClient
       .from("intakes")
-      .select("id, customer_id, intake_number, brand, model, is_archived, created_at")
+      .select("id, customer_id, intake_number, intake_type, brand, model, is_archived, created_at")
       .or(
         `intake_number.ilike.%${escaped}%,brand.ilike.%${escaped}%,model.ilike.%${escaped}%,issue_description.ilike.%${escaped}%,notes.ilike.%${escaped}%`
       )
@@ -165,6 +167,7 @@ export async function GET(request: Request) {
     id: string;
     customer_id: string;
     intake_number: string;
+    intake_type: string;
     brand: string;
     model: string;
     is_archived: boolean;
@@ -174,7 +177,7 @@ export async function GET(request: Request) {
   if (customerIds.length > 0) {
     const { data } = await adminClient
       .from("intakes")
-      .select("id, customer_id, intake_number, brand, model, is_archived, created_at")
+      .select("id, customer_id, intake_number, intake_type, brand, model, is_archived, created_at")
       .in("customer_id", customerIds)
       .order("created_at", { ascending: false })
       .limit(8);
@@ -209,6 +212,7 @@ export async function GET(request: Request) {
     return {
       id: intake.id,
       intakeNumber: intake.intake_number,
+      intakeType: intake.intake_type ?? "service",
       customerName: customer?.full_name ?? "—",
       customerPhone: customer?.display_phone ?? "—",
       brand: intake.brand,

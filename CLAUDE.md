@@ -6,7 +6,7 @@ Repair-shop CRM with label printing. Internal tool for a small family business.
 
 - **Stack**: Next.js 16, React 19, TypeScript, Tailwind CSS 4, Supabase, Node.js print agent
 - **Monorepo**: npm workspaces — `apps/web` (PWA) and `apps/print-agent` (Windows worker)
-- **DB**: Supabase Postgres — tables: `customers`, `intakes`, `print_jobs`, `audit_events`
+- **DB**: Supabase Postgres — tables: `customers`, `intakes` (discriminator: `intake_type ∈ {service, sale}`), `print_jobs`, `audit_events`. Future tables planned: `intake_photos`, `notifications`.
 - **Printer**: Brother QL-800 connected via USB to a Windows desktop
 - **Theme colors**: `#23443f` (dark green) and `#f8f6eb` (cream)
 
@@ -20,7 +20,17 @@ Repair-shop CRM with label printing. Internal tool for a small family business.
 - The print agent attempts each job once; failed jobs are never auto-retried (user must reprint manually)
 - No hard deletes for business records
 - One intake = one machine
-- Stick to v1 scope in `docs/spec-v1.md` — no workflow stages, task automation, messaging, customer portals, or intake photos
+- The v1 scope in `docs/spec-v1.md` is the *current* baseline, not a hard ceiling. Planned future features (be aware when designing): client-facing portal with per-customer auth and RLS, real-time status updates, customer notifications (SMS/email), before/after intake photos, additional intake types beyond service/sale. Discuss schema implications before adding fields that touch these areas.
+
+## Schema decisions
+
+When adding new data, follow these defaults:
+- **One-to-many relationships → new table.** (Photos, notifications, status history.) Never JSON-array on `intakes`.
+- **Entity with own lifecycle → new table.** (Anything that can fail/retry/expire independently.) Mirror the `print_jobs` pattern.
+- **Variant of an existing entity sharing 90%+ structure → discriminator column on existing table.** (Service vs. sale.)
+- **Cross-cutting concerns → separate table even if 1:1.** (Audit, notifications.)
+- **Default to columns over JSON.** Reserve JSON for truly free-form payloads (`audit_events.payload`).
+- **Before adding a customer-facing feature, check RLS policies.** Today they are `using (true)` — staff-only. Customer access requires per-row policies tied to `customers.auth_user_id`.
 
 ## Key Commands
 

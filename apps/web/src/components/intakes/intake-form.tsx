@@ -23,13 +23,43 @@ function FieldError({ message }: { message?: string }) {
   return <p className="text-sm text-[#8a4f22]">{message}</p>;
 }
 
-export function IntakeForm() {
+export function IntakeForm({ defaultType = "service" }: { defaultType?: "service" | "sale" }) {
   const [state, formAction] = useActionState(createIntakeAction, initialState);
   const [submissionToken] = useState(buildSubmissionToken);
+  const [intakeType, setIntakeType] = useState<"service" | "sale">(defaultType);
+
+  const isSale = intakeType === "sale";
 
   return (
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="submissionToken" value={submissionToken} />
+      <input type="hidden" name="intakeType" value={intakeType} />
+
+      {/* Type toggle */}
+      <div className="flex gap-2 rounded-2xl border border-border bg-[#f0ede0] p-1">
+        <button
+          type="button"
+          onClick={() => setIntakeType("service")}
+          className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+            !isSale
+              ? "bg-[#23443f] text-white shadow-sm"
+              : "text-foreground/60 hover:text-foreground"
+          }`}
+        >
+          Сервиз
+        </button>
+        <button
+          type="button"
+          onClick={() => setIntakeType("sale")}
+          className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+            isSale
+              ? "bg-[#23443f] text-white shadow-sm"
+              : "text-foreground/60 hover:text-foreground"
+          }`}
+        >
+          Продажби
+        </button>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">
@@ -47,7 +77,7 @@ export function IntakeForm() {
           <FieldError message={state.fieldErrors?.fullName} />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 sm:col-span-2">
           <label htmlFor="phoneNumber" className="text-sm font-medium text-foreground">
             Телефон
           </label>
@@ -107,22 +137,38 @@ export function IntakeForm() {
           <FieldError message={state.fieldErrors?.model} />
         </div>
 
-        <div className="space-y-2 sm:col-span-2">
-          <label htmlFor="issueDescription" className="text-sm font-medium text-foreground">
-            Описание на проблема
-          </label>
-          <textarea
-            id="issueDescription"
-            name="issueDescription"
-            required
-            rows={4}
-            defaultValue={state.values?.issueDescription ?? ""}
-            className="w-full rounded-2xl border border-border bg-white px-4 py-3 outline-none transition focus:border-surface-strong"
-            placeholder="Не пуска вода, тече отдолу, прави шум..."
-          />
-          <FieldError message={state.fieldErrors?.issueDescription} />
-        </div>
-
+        {/* Service: required issue description. Sales: optional note. */}
+        {!isSale ? (
+          <div className="space-y-2 sm:col-span-2">
+            <label htmlFor="issueDescription" className="text-sm font-medium text-foreground">
+              Описание на проблема
+            </label>
+            <textarea
+              id="issueDescription"
+              name="issueDescription"
+              required
+              rows={4}
+              defaultValue={state.values?.issueDescription ?? ""}
+              className="w-full rounded-2xl border border-border bg-white px-4 py-3 outline-none transition focus:border-surface-strong"
+              placeholder="Не пуска вода, тече отдолу, прави шум..."
+            />
+            <FieldError message={state.fieldErrors?.issueDescription} />
+          </div>
+        ) : (
+          <div className="space-y-2 sm:col-span-2">
+            <label htmlFor="issueDescription" className="text-sm font-medium text-foreground">
+              Бележка <span className="text-muted font-normal">(по желание)</span>
+            </label>
+            <textarea
+              id="issueDescription"
+              name="issueDescription"
+              rows={3}
+              defaultValue={state.values?.issueDescription ?? ""}
+              className="w-full rounded-2xl border border-border bg-white px-4 py-3 outline-none transition focus:border-surface-strong"
+              placeholder="Допълнителна информация..."
+            />
+          </div>
+        )}
       </div>
 
       {state.message ? (
@@ -163,20 +209,41 @@ export function IntakeForm() {
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-2">
-          <label htmlFor="chargedAmount" className="text-sm font-medium text-foreground">
-            Цена (€)
-          </label>
-          <input
-            id="chargedAmount"
-            name="chargedAmount"
-            inputMode="decimal"
-            placeholder="Напр. 120"
-            className="min-h-12 w-full rounded-2xl border border-border bg-white px-4 py-3 outline-none transition focus:border-surface-strong sm:w-40"
-          />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap">
+          <div className="space-y-2">
+            <label htmlFor="chargedAmount" className="text-sm font-medium text-foreground">
+              Цена (€)
+            </label>
+            <input
+              id="chargedAmount"
+              name="chargedAmount"
+              inputMode="decimal"
+              placeholder="Напр. 120"
+              className="min-h-12 w-full rounded-2xl border border-border bg-white px-4 py-3 outline-none transition focus:border-surface-strong sm:w-36"
+            />
+          </div>
+
+          {isSale ? (
+            <div className="space-y-2">
+              <label htmlFor="coffeeCount" className="text-sm font-medium text-foreground">
+                Брой кафета
+              </label>
+              <input
+                id="coffeeCount"
+                name="coffeeCount"
+                inputMode="numeric"
+                placeholder="Напр. 5000"
+                className="min-h-12 w-full rounded-2xl border border-border bg-white px-4 py-3 outline-none transition focus:border-surface-strong sm:w-36"
+              />
+            </div>
+          ) : null}
         </div>
-        <SubmitButton label="Запази приемането" pendingLabel="Запазване..." />
+
+        <SubmitButton
+          label={isSale ? "Запази продажбата" : "Запази приемането"}
+          pendingLabel="Запазване..."
+        />
       </div>
     </form>
   );

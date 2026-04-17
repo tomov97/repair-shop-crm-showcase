@@ -34,6 +34,7 @@ export type IntakeTrendSeries = Record<
 export type IntakeDirectoryItem = {
   id: string;
   intakeNumber: string;
+  intakeType: string;
   customerName: string;
   customerPhone: string;
   brand: string;
@@ -205,6 +206,7 @@ export async function getIntakeTrendSeries() {
   const { data } = await supabase
     .from("intakes")
     .select("created_at")
+    .eq("intake_type", "service")
     .gte("created_at", fiveYearsAgo.toISOString())
     .order("created_at", { ascending: true });
   const createdAtValues = ((data as Array<{ created_at: string }> | null) ?? []).map((item) => item.created_at);
@@ -216,6 +218,7 @@ type IntakeDirectoryRpcRow = {
   id: string;
   customer_id: string;
   intake_number: string;
+  intake_type: string;
   brand: string;
   model: string;
   is_archived: boolean;
@@ -228,14 +231,20 @@ type IntakeDirectoryRpcRow = {
   customer_visit_count: number;
 };
 
-export async function getIntakeDirectory(options?: { includeArchived?: boolean; archivedOnly?: boolean; limit?: number }) {
-  const limit = options?.limit ?? 30;
+export async function getIntakeDirectory(options: {
+  intakeType: "service" | "sale";
+  includeArchived?: boolean;
+  archivedOnly?: boolean;
+  limit?: number;
+}) {
+  const limit = options.limit ?? 30;
   const supabase = getSupabaseAdminClient();
 
   const { data } = await supabase.rpc("get_intake_directory", {
     p_limit: limit,
-    p_archived_only: options?.archivedOnly ?? false,
-    p_include_archived: options?.includeArchived ?? false,
+    p_archived_only: options.archivedOnly ?? false,
+    p_include_archived: options.includeArchived ?? false,
+    p_intake_type: options.intakeType,
   });
 
   const rows = (data as IntakeDirectoryRpcRow[] | null) ?? [];
@@ -243,6 +252,7 @@ export async function getIntakeDirectory(options?: { includeArchived?: boolean; 
   return rows.map((row) => ({
     id: row.id,
     intakeNumber: row.intake_number,
+    intakeType: row.intake_type,
     customerName: row.customer_full_name ?? "Неизвестен клиент",
     customerPhone: row.customer_display_phone ?? "Няма телефон",
     brand: row.brand,

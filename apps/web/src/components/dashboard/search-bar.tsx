@@ -36,10 +36,14 @@ function ResultCard({
       <p className="mt-0.5 text-[11px] font-semibold text-[#23443f]">{result.intakeNumber}</p>
       <div className="mt-0.5 flex items-center gap-2">
         <p className="text-[11px] text-[#60726d]">{result.createdAtLabel}</p>
-        <StatusPill
-          label={result.isArchived ? "Архивиран" : "Активен"}
-          archived={result.isArchived}
-        />
+        {result.intakeType === "sale" ? (
+          <StatusPill label="Продажба" />
+        ) : (
+          <StatusPill
+            label={result.isArchived ? "Архивиран" : "Активен"}
+            archived={result.isArchived}
+          />
+        )}
       </div>
     </button>
   );

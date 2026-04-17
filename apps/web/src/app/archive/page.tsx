@@ -5,7 +5,7 @@ import { getCurrentUser, requireUser } from "@/lib/auth";
 import { getIntakeDirectory } from "@/lib/dashboard-data";
 
 async function ArchivedIntakesSection() {
-  const archivedItems = await getIntakeDirectory({ archivedOnly: true, limit: 40 });
+  const archivedItems = await getIntakeDirectory({ intakeType: "service", archivedOnly: true, limit: 40 });
 
   return (
     <>

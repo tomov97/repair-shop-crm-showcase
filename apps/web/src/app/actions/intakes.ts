@@ -46,7 +46,7 @@ export type UpdateIntakeActionState = {
   message?: string;
 };
 
-const intakeSchema = z.object({
+const serviceIntakeSchema = z.object({
   fullName: z.string().trim().min(2, "Въведи име на клиент."),
   countryCode: z.string().trim().regex(/^\+\d{1,4}$/, "Избери валиден код."),
   phoneNumber: z.string().trim().min(6, "Въведи телефонен номер."),
@@ -57,14 +57,28 @@ const intakeSchema = z.object({
   customerResolution: z.string().optional(),
 });
 
-const updateIntakeSchema = z.object({
-  intakeId: z.string().uuid("Липсва валидно приемане."),
-  fullName: z.string().trim().min(2, "Въведи име на клиент."),
+// Sales intakes: note (issueDescription) is optional, coffee count accepted at creation
+const saleIntakeSchema = z.object({
+  fullName: z.string().trim().min(2, "Въведи ime на клиент."),
   countryCode: z.string().trim().regex(/^\+\d{1,4}$/, "Избери валиден код."),
   phoneNumber: z.string().trim().min(6, "Въведи телефонен номер."),
   brand: z.string().trim().min(1, "Въведи марка."),
   model: z.string().trim().min(1, "Въведи модел."),
-  issueDescription: z.string().trim().min(5, "Опиши проблема."),
+  issueDescription: z.string().trim().default(""),
+  submissionToken: z.string().trim().min(12, "Липсва токен за изпращане."),
+  customerResolution: z.string().optional(),
+  coffeeCount: z.string().optional(),
+});
+
+const updateIntakeSchema = z.object({
+  intakeId: z.string().uuid("Липсва валидно приемане."),
+  intakeType: z.enum(["service", "sale"]).default("service"),
+  fullName: z.string().trim().min(2, "Въведи ime на клиент."),
+  countryCode: z.string().trim().regex(/^\+\d{1,4}$/, "Избери валиден код."),
+  phoneNumber: z.string().trim().min(6, "Въведи телефонен номер."),
+  brand: z.string().trim().min(1, "Въведи марка."),
+  model: z.string().trim().min(1, "Въведи модел."),
+  issueDescription: z.string().trim().default(""),
   returnTo: z.string().trim().min(1).default("/"),
 });
 
@@ -98,6 +112,8 @@ export async function createIntakeAction(
 ): Promise<IntakeActionState> {
   const user = await requireUser();
 
+  const intakeType = formData.get("intakeType") === "sale" ? "sale" : "service";
+
   const rawValues = {
     fullName: String(formData.get("fullName") ?? ""),
     countryCode: String(formData.get("countryCode") ?? "+359"),
@@ -107,10 +123,13 @@ export async function createIntakeAction(
     issueDescription: String(formData.get("issueDescription") ?? ""),
   };
 
-  const validatedFields = intakeSchema.safeParse({
+  const schema = intakeType === "sale" ? saleIntakeSchema : serviceIntakeSchema;
+
+  const validatedFields = schema.safeParse({
     ...rawValues,
     submissionToken: getOptionalFormValue(formData, "submissionToken"),
     customerResolution: getOptionalFormValue(formData, "customerResolution"),
+    ...(intakeType === "sale" ? { coffeeCount: getOptionalFormValue(formData, "coffeeCount") } : {}),
   });
 
   if (!validatedFields.success) {
@@ -142,8 +161,20 @@ export async function createIntakeAction(
   const chargedAmountRaw = getOptionalFormValue(formData, "chargedAmount");
   const chargedAmount = chargedAmountRaw?.trim() ? parseChargedAmount(chargedAmountRaw) : null;
 
+  let coffeeCount: number | null = null;
+  if (intakeType === "sale") {
+    const coffeeCountRaw = getOptionalFormValue(formData, "coffeeCount");
+    if (coffeeCountRaw?.trim()) {
+      const parsed = parseInt(coffeeCountRaw.trim(), 10);
+      if (!isNaN(parsed) && parsed >= 0) {
+        coffeeCount = parsed;
+      }
+    }
+  }
+
   const result = await createIntake({
     actorId: user.id,
+    intakeType,
     fullName: validatedFields.data.fullName,
     phoneNumber: displayPhone,
     brand: validatedFields.data.brand,
@@ -152,6 +183,7 @@ export async function createIntakeAction(
     submissionToken: validatedFields.data.submissionToken,
     customerResolution: validatedFields.data.customerResolution ?? null,
     chargedAmount,
+    coffeeCount,
   });
 
   if (result.type === "needs_customer_confirmation") {
@@ -169,8 +201,11 @@ export async function createIntakeAction(
     };
   }
 
-  revalidatePath("/dashboard");
+
   revalidatePath(`/intakes/${result.intakeId}`);
+  if (intakeType === "sale") {
+    revalidatePath("/sales");
+  }
 
   redirect(`/intakes/${result.intakeId}`);
 }
@@ -200,7 +235,7 @@ export async function archiveIntakeAction(
     };
   }
 
-  revalidatePath("/dashboard");
+
   revalidatePath("/intakes");
   revalidatePath(`/intakes/${intakeId}`);
 
@@ -248,7 +283,7 @@ export async function saveChargedAmountAction(
     };
   }
 
-  revalidatePath("/dashboard");
+
   revalidatePath("/intakes");
   revalidatePath(`/intakes/${intakeId}`);
 
@@ -288,7 +323,7 @@ export async function saveCoffeeCountAction(
     return { message: result.message };
   }
 
-  revalidatePath("/dashboard");
+
   revalidatePath("/intakes");
   revalidatePath(`/intakes/${intakeId}`);
 
@@ -330,12 +365,13 @@ export async function updateIntakeAction(
   const user = await requireUser();
   const validatedFields = updateIntakeSchema.safeParse({
     intakeId: formData.get("intakeId"),
+    intakeType: formData.get("intakeType"),
     fullName: formData.get("fullName"),
     countryCode: formData.get("countryCode"),
     phoneNumber: formData.get("phoneNumber"),
     brand: formData.get("brand"),
     model: formData.get("model"),
-    issueDescription: formData.get("issueDescription"),
+    issueDescription: formData.get("issueDescription") ?? "",
     returnTo: formData.get("returnTo"),
   });
 
@@ -361,8 +397,9 @@ export async function updateIntakeAction(
     };
   }
 
-  revalidatePath("/dashboard");
+
   revalidatePath("/intakes");
+  revalidatePath("/sales");
   revalidatePath(`/intakes/${validatedFields.data.intakeId}`);
 
   redirect(safeRedirectUrl(validatedFields.data.returnTo, "/"));

@@ -150,7 +150,7 @@ function IntakeCard({
             <p className="mt-0.5 text-sm font-medium text-[#7b6530]">{intake.brand} {intake.model}</p>
           </div>
           <div className="flex shrink-0 items-center gap-2" onClick={(e) => e.stopPropagation()}>
-            {!intake.isArchived ? (
+            {!intake.isArchived && intake.intakeType !== "sale" ? (
               <ArchiveIntakeForm intakeId={intake.id} returnTo={returnTo} iconOnly />
             ) : null}
             <a
@@ -199,7 +199,7 @@ function IntakeCard({
             </span>
           ) : null}
           <PricePopout intakeId={intake.id} returnTo={returnTo} initialValue={intake.chargedAmountValue ?? ""} />
-          {!intake.isArchived ? (
+          {!intake.isArchived && intake.intakeType !== "sale" ? (
             <ArchiveIntakeForm intakeId={intake.id} returnTo={returnTo} iconOnly />
           ) : null}
         </div>

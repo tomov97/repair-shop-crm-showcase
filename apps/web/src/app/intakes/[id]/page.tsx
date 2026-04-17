@@ -95,10 +95,16 @@ export default async function IntakeDetailPage({
                 </p>
               ) : null}
 
+              {intake.intakeType === "sale" ? (
+                <div className="inline-flex rounded-xl border border-[#c7d4e8] bg-[#edf2f9] px-3 py-1.5 text-sm font-semibold text-[#2b4a7a]">
+                  Продажба
+                </div>
+              ) : null}
+
               <div className="flex flex-wrap items-center gap-2 border-t border-border pt-4">
                 {/* Action icon buttons */}
                 <ReprintButton intakeId={intake.id} returnTo={`/intakes/${intake.id}`} />
-                {!intake.isArchived ? (
+                {!intake.isArchived && intake.intakeType !== "sale" ? (
                   <ArchiveIntakeForm intakeId={intake.id} returnTo={`/intakes/${intake.id}`} iconOnly />
                 ) : null}
                 <a
@@ -137,7 +143,14 @@ export default async function IntakeDetailPage({
                     href={`/intakes/${item.id}`}
                     className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2.5 text-sm transition hover:border-surface-strong/30"
                   >
-                    <span className="font-semibold">{item.intakeNumber}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">{item.intakeNumber}</span>
+                      {item.intakeType === "sale" ? (
+                        <span className="rounded-md bg-[#edf2f9] px-1.5 py-0.5 text-xs font-medium text-[#2b4a7a]">
+                          Продажба
+                        </span>
+                      ) : null}
+                    </div>
                     <span className="text-muted">{item.createdAtLabel}</span>
                   </Link>
                 ))}
@@ -147,6 +160,7 @@ export default async function IntakeDetailPage({
             <DetailCard title="Данни за приема">
               <EditIntakeForm
                 intakeId={intake.id}
+                intakeType={intake.intakeType}
                 returnTo={`/intakes/${intake.id}`}
                 fullName={intake.customerName}
                 customerPhone={intake.customerPhone}

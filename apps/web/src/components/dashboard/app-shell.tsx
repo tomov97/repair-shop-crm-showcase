@@ -14,6 +14,10 @@ const navigationItems: NavigationItem[] = [
     href: "/archive",
     label: "Архив",
   },
+  {
+    href: "/sales",
+    label: "Продажби",
+  },
   // { href: "/print", label: "За печат" }, // hidden until print agent is live
 ];
 

@@ -22,10 +22,11 @@ type IntakeRow = {
   id: string;
   customer_id: string;
   intake_number: string;
+  intake_type: string;
   scan_token: string;
   brand: string;
   model: string;
-  issue_description: string;
+  issue_description: string | null;
   notes: string | null;
   is_archived: boolean;
   charged_amount: string | null;
@@ -45,6 +46,7 @@ type AuditEventInsert = {
 export type IntakeListItem = {
   id: string;
   intakeNumber: string;
+  intakeType: string;
   customerName: string;
   customerPhone: string;
   brand: string;
@@ -71,6 +73,7 @@ export type DashboardData = {
 export type IntakeDetail = {
   id: string;
   intakeNumber: string;
+  intakeType: string;
   scanToken: string;
   createdAtLabel: string;
   updatedAtLabel: string;
@@ -81,7 +84,7 @@ export type IntakeDetail = {
   coffeeCount: number | null;
   brand: string;
   model: string;
-  issueDescription: string;
+  issueDescription: string | null;
   notes: string | null;
   customerName: string;
   customerPhone: string;
@@ -89,6 +92,7 @@ export type IntakeDetail = {
   previousIntakes: Array<{
     id: string;
     intakeNumber: string;
+    intakeType: string;
     createdAtLabel: string;
     brand: string;
     model: string;
@@ -113,6 +117,7 @@ export type CustomerMatchCandidate = {
 
 type CreateIntakeInput = {
   actorId: string;
+  intakeType: "service" | "sale";
   fullName: string;
   phoneNumber: string;
   brand: string;
@@ -120,9 +125,22 @@ type CreateIntakeInput = {
   issueDescription: string;
   notes?: string;
   chargedAmount?: number | null;
+  coffeeCount?: number | null;
   submissionToken: string;
   customerResolution?: string | null;
 };
+
+// For sales, issue_description is the optional "Бележка" note. We persist
+// empty values as NULL so the schema constraint
+// (intakes_service_requires_issue) holds — the column is nullable, but
+// service rows must have a non-empty value.
+function normalizeIssueDescription(intakeType: "service" | "sale", value: string): string | null {
+  const trimmed = value.trim();
+  if (intakeType === "sale") {
+    return trimmed.length === 0 ? null : trimmed;
+  }
+  return trimmed;
+}
 
 export type CreateIntakeResult =
   | {
@@ -212,6 +230,16 @@ async function getNextIntakeNumber(supabase = getSupabaseAdminClient()) {
   return data as string;
 }
 
+async function getNextSalesIntakeNumber(supabase = getSupabaseAdminClient()) {
+  const { data, error } = await supabase.rpc("next_sales_intake_number");
+
+  if (error || !data) {
+    throw error ?? new Error("next_sales_intake_number returned empty result");
+  }
+
+  return data as string;
+}
+
 export async function getDashboardData(): Promise<DashboardData> {
   const supabase = getSupabaseAdminClient();
 
@@ -219,15 +247,16 @@ export async function getDashboardData(): Promise<DashboardData> {
     supabase
       .from("intakes")
       .select(`
-        id, customer_id, intake_number, brand, model, is_archived, charged_amount, created_at,
+        id, customer_id, intake_number, intake_type, brand, model, is_archived, charged_amount, created_at,
         customers ( full_name, display_phone ),
         print_jobs ( status, created_at )
       `)
       .eq("is_archived", false)
+      .eq("intake_type", "service")
       .order("created_at", { ascending: false })
       .limit(8),
-    supabase.from("intakes").select("id", { count: "exact", head: true }).eq("is_archived", false),
-    supabase.from("intakes").select("id", { count: "exact", head: true }).eq("is_archived", true),
+    supabase.from("intakes").select("id", { count: "exact", head: true }).eq("is_archived", false).eq("intake_type", "service"),
+    supabase.from("intakes").select("id", { count: "exact", head: true }).eq("is_archived", true).eq("intake_type", "service"),
     supabase.from("print_jobs").select("id", { count: "exact", head: true }).in("status", ["queued", "failed"]),
   ]);
 
@@ -282,6 +311,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       return {
         id: intake.id,
         intakeNumber: intake.intake_number,
+        intakeType: intake.intake_type,
         customerName: intake.customers?.full_name ?? "Неизвестен клиент",
         customerPhone: intake.customers?.display_phone ?? "Няма телефон",
         brand: intake.brand,
@@ -304,7 +334,7 @@ export async function getIntakeDetail(intakeId: string): Promise<IntakeDetail | 
     supabase
       .from("intakes")
       .select(`
-        id, customer_id, intake_number, scan_token, brand, model, issue_description, notes,
+        id, customer_id, intake_number, intake_type, scan_token, brand, model, issue_description, notes,
         is_archived, charged_amount, coffee_count, created_at, updated_at, archived_at,
         customers ( full_name, display_phone )
       `)
@@ -320,7 +350,7 @@ export async function getIntakeDetail(intakeId: string): Promise<IntakeDetail | 
   const intake = intakeResult.data as (IntakeRow & {
     coffee_count: number | null;
     customers: { full_name: string; display_phone: string } | null;
-  }) | null;
+  } & { intake_type: string }) | null;
 
   if (intakeResult.error || !intake) {
     return null;
@@ -328,7 +358,7 @@ export async function getIntakeDetail(intakeId: string): Promise<IntakeDetail | 
 
   const relatedIntakesResult = await supabase
     .from("intakes")
-    .select("id, intake_number, brand, model, is_archived, created_at")
+    .select("id, intake_number, intake_type, brand, model, is_archived, created_at")
     .eq("customer_id", intake.customer_id)
     .neq("id", intakeId)
     .order("created_at", { ascending: false })
@@ -337,6 +367,7 @@ export async function getIntakeDetail(intakeId: string): Promise<IntakeDetail | 
   const previousIntakes = (relatedIntakesResult.data as Array<{
     id: string;
     intake_number: string;
+    intake_type: string;
     brand: string;
     model: string;
     is_archived: boolean;
@@ -355,6 +386,7 @@ export async function getIntakeDetail(intakeId: string): Promise<IntakeDetail | 
   return {
     id: intake.id,
     intakeNumber: intake.intake_number,
+    intakeType: intake.intake_type,
     scanToken: intake.scan_token,
     createdAtLabel: formatDate(intake.created_at),
     updatedAtLabel: formatDateTime(intake.updated_at),
@@ -373,6 +405,7 @@ export async function getIntakeDetail(intakeId: string): Promise<IntakeDetail | 
     previousIntakes: previousIntakes.map((item) => ({
       id: item.id,
       intakeNumber: item.intake_number,
+      intakeType: item.intake_type,
       createdAtLabel: formatDateTime(item.created_at),
       brand: item.brand,
       model: item.model,
@@ -535,19 +568,23 @@ export async function createIntake(input: CreateIntakeInput): Promise<CreateInta
     };
   }
 
-  const intakeNumber = await getNextIntakeNumber(supabase);
+  const intakeNumber = input.intakeType === "sale"
+    ? await getNextSalesIntakeNumber(supabase)
+    : await getNextIntakeNumber(supabase);
   const { data: createdIntake, error: createIntakeError } = await supabase
     .from("intakes")
     .insert({
       customer_id: customerId,
       intake_number: intakeNumber,
+      intake_type: input.intakeType,
       scan_token: scanToken,
       brand: input.brand.trim(),
       model: input.model.trim(),
-      issue_description: input.issueDescription.trim(),
+      issue_description: normalizeIssueDescription(input.intakeType, input.issueDescription),
       notes: input.notes?.trim() || null,
       is_archived: false,
       charged_amount: input.chargedAmount ?? null,
+      coffee_count: input.coffeeCount ?? null,
     })
     .select("id")
     .single();
@@ -747,7 +784,7 @@ export async function updateIntake(input: {
 
   const { data: existingIntake, error: existingIntakeError } = await supabase
     .from("intakes")
-    .select("id, customer_id, brand, model, issue_description")
+    .select("id, customer_id, intake_type, brand, model, issue_description")
     .eq("id", input.intakeId)
     .maybeSingle();
 
@@ -787,12 +824,16 @@ export async function updateIntake(input: {
     };
   }
 
+  const intakeType = ((existingIntake as { intake_type?: string }).intake_type === "sale"
+    ? "sale"
+    : "service") as "service" | "sale";
+
   const { error: intakeUpdateError } = await supabase
     .from("intakes")
     .update({
       brand: input.brand.trim(),
       model: input.model.trim(),
-      issue_description: input.issueDescription.trim(),
+      issue_description: normalizeIssueDescription(intakeType, input.issueDescription),
     })
     .eq("id", input.intakeId);
 
@@ -896,7 +937,7 @@ export async function archiveIntake(input: {
   const supabase = getSupabaseAdminClient();
   const { data: existingIntake, error: existingIntakeError } = await supabase
     .from("intakes")
-    .select("id, is_archived, charged_amount")
+    .select("id, intake_type, is_archived, charged_amount")
     .eq("id", input.intakeId)
     .maybeSingle();
 
@@ -904,6 +945,13 @@ export async function archiveIntake(input: {
     return {
       type: "error",
       message: mapErrorMessage(existingIntakeError, "Не успяхме да намерим приемането."),
+    };
+  }
+
+  if ((existingIntake as { intake_type?: string }).intake_type === "sale") {
+    return {
+      type: "error",
+      message: "Продажбите не могат да се архивират.",
     };
   }
 

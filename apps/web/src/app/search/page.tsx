@@ -49,6 +49,7 @@ async function searchIntakes(q: string): Promise<IntakeDirectoryItem[]> {
     id: string;
     customer_id: string;
     intake_number: string;
+    intake_type: string;
     brand: string;
     model: string;
     is_archived: boolean;
@@ -60,7 +61,7 @@ async function searchIntakes(q: string): Promise<IntakeDirectoryItem[]> {
   if (dateRange) {
     const { data } = await adminClient
       .from("intakes")
-      .select("id, customer_id, intake_number, brand, model, is_archived, created_at, archived_at")
+      .select("id, customer_id, intake_number, intake_type, brand, model, is_archived, created_at, archived_at")
       .gte("created_at", dateRange.from)
       .lte("created_at", dateRange.to)
       .order("created_at", { ascending: false })
@@ -79,7 +80,7 @@ async function searchIntakes(q: string): Promise<IntakeDirectoryItem[]> {
       adminClient.from("customers").select("id").or(customerOrParts.join(",")),
       adminClient
         .from("intakes")
-        .select("id, customer_id, intake_number, brand, model, is_archived, created_at, archived_at")
+        .select("id, customer_id, intake_number, intake_type, brand, model, is_archived, created_at, archived_at")
         .or(
           `intake_number.ilike.%${escaped}%,brand.ilike.%${escaped}%,model.ilike.%${escaped}%,issue_description.ilike.%${escaped}%,notes.ilike.%${escaped}%`
         )
@@ -92,7 +93,7 @@ async function searchIntakes(q: string): Promise<IntakeDirectoryItem[]> {
     if (customerIds.length > 0) {
       const { data } = await adminClient
         .from("intakes")
-        .select("id, customer_id, intake_number, brand, model, is_archived, created_at, archived_at")
+        .select("id, customer_id, intake_number, intake_type, brand, model, is_archived, created_at, archived_at")
         .in("customer_id", customerIds)
         .order("created_at", { ascending: false })
         .limit(100);
@@ -123,6 +124,7 @@ async function searchIntakes(q: string): Promise<IntakeDirectoryItem[]> {
     return {
       id: intake.id,
       intakeNumber: intake.intake_number,
+      intakeType: intake.intake_type ?? "service",
       customerName: customer?.full_name ?? "Неизвестен клиент",
       customerPhone: customer?.display_phone ?? "Няма телефон",
       brand: intake.brand,

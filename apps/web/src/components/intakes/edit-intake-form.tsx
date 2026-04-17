@@ -9,6 +9,7 @@ const initialState: UpdateIntakeActionState = {};
 
 export function EditIntakeForm({
   intakeId,
+  intakeType = "service",
   returnTo,
   fullName,
   customerPhone,
@@ -17,19 +18,22 @@ export function EditIntakeForm({
   issueDescription,
 }: {
   intakeId: string;
+  intakeType?: string;
   returnTo: string;
   fullName: string;
   customerPhone: string;
   brand: string;
   model: string;
-  issueDescription: string;
+  issueDescription: string | null;
 }) {
   const [state, formAction] = useActionState(updateIntakeAction, initialState);
   const phoneParts = splitStructuredPhone(customerPhone);
+  const isSale = intakeType === "sale";
 
   return (
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="intakeId" value={intakeId} />
+      <input type="hidden" name="intakeType" value={intakeType} />
       <input type="hidden" name="returnTo" value={returnTo} />
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -97,13 +101,17 @@ export function EditIntakeForm({
 
         <div className="space-y-2 md:col-span-2">
           <label htmlFor={`issueDescription-${intakeId}`} className="text-sm font-medium text-foreground">
-            Описание на проблема
+            {isSale ? (
+              <>Бележка <span className="text-muted font-normal">(по желание)</span></>
+            ) : (
+              "Описание на проблема"
+            )}
           </label>
           <textarea
             id={`issueDescription-${intakeId}`}
             name="issueDescription"
             rows={3}
-            defaultValue={issueDescription}
+            defaultValue={issueDescription ?? ""}
             className="w-full rounded-2xl border border-border bg-white px-4 py-3 outline-none transition focus:border-surface-strong"
           />
         </div>
