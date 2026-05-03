@@ -16,7 +16,7 @@ const envSchema = z.object({
   LABEL_PRINTER_NAME: z.string().min(1),
   LABEL_TEMPLATE_PATH: z.string().min(1).default("./assets/label.lbx"),
   WEB_BASE_URL: z.url(),
-  PRINT_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(5000),
+  PRINT_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(2000),
 });
 
 type PrintAgentEnv = z.infer<typeof envSchema>;

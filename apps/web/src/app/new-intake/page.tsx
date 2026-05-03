@@ -5,11 +5,18 @@ import { getCurrentUser, requireUser } from "@/lib/auth";
 export default async function NewIntakePage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string }>;
+  searchParams: Promise<{
+    type?: string;
+    fullName?: string;
+    countryCode?: string;
+    phoneNumber?: string;
+    brand?: string;
+    model?: string;
+  }>;
 }) {
   await requireUser();
   const user = await getCurrentUser();
-  const { type } = await searchParams;
+  const { type, fullName, countryCode, phoneNumber, brand, model } = await searchParams;
   const defaultType = type === "sale" ? "sale" : "service";
 
   return (
@@ -17,7 +24,14 @@ export default async function NewIntakePage({
       <section>
         <article className="rounded-[2rem] border border-border bg-white/88 px-5 py-5 shadow-[0_18px_48px_rgba(20,30,28,0.06)] backdrop-blur sm:px-6">
           <div>
-            <IntakeForm defaultType={defaultType} />
+            <IntakeForm
+              defaultType={defaultType}
+              initialFullName={fullName?.slice(0, 200)}
+              initialCountryCode={countryCode?.slice(0, 10)}
+              initialPhoneNumber={phoneNumber?.slice(0, 20)}
+              initialBrand={brand?.slice(0, 200)}
+              initialModel={model?.slice(0, 200)}
+            />
           </div>
         </article>
       </section>

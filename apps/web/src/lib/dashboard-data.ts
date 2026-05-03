@@ -229,44 +229,53 @@ type IntakeDirectoryRpcRow = {
   customer_display_phone: string | null;
   latest_print_status: string | null;
   customer_visit_count: number;
+  total_count: number;
 };
+
+export const INTAKE_DIRECTORY_PAGE_SIZE = 50;
 
 export async function getIntakeDirectory(options: {
   intakeType: "service" | "sale";
   includeArchived?: boolean;
   archivedOnly?: boolean;
-  limit?: number;
-}) {
-  const limit = options.limit ?? 30;
+  page?: number;
+}): Promise<{ items: IntakeDirectoryItem[]; totalCount: number }> {
+  const page = Math.max(1, options.page ?? 1);
+  const offset = (page - 1) * INTAKE_DIRECTORY_PAGE_SIZE;
   const supabase = getSupabaseAdminClient();
 
   const { data } = await supabase.rpc("get_intake_directory", {
-    p_limit: limit,
+    p_limit: INTAKE_DIRECTORY_PAGE_SIZE,
+    p_offset: offset,
     p_archived_only: options.archivedOnly ?? false,
     p_include_archived: options.includeArchived ?? false,
     p_intake_type: options.intakeType,
   });
 
   const rows = (data as IntakeDirectoryRpcRow[] | null) ?? [];
+  const totalCount = rows[0]?.total_count ? Number(rows[0].total_count) : 0;
 
-  return rows.map((row) => ({
-    id: row.id,
-    intakeNumber: row.intake_number,
-    intakeType: row.intake_type,
-    customerName: row.customer_full_name ?? "Неизвестен клиент",
-    customerPhone: row.customer_display_phone ?? "Няма телефон",
-    brand: row.brand,
-    model: row.model,
-    createdAt: row.created_at,
-    createdAtLabel: formatDateTime(row.created_at),
-    archivedAt: row.archived_at ?? null,
-    archivedAtLabel: row.archived_at ? formatDateTime(row.archived_at) : null,
-    isArchived: row.is_archived,
-    printStatus: getPrintStatusLabel(row.latest_print_status ?? undefined),
-    chargedAmountLabel: row.charged_amount ? String(Math.round(Number(row.charged_amount))) : undefined,
-    chargedAmountValue: row.charged_amount ?? undefined,
-    customerVisitCount: Number(row.customer_visit_count ?? 1),
-  } satisfies IntakeDirectoryItem));
+  return {
+    totalCount,
+    items: rows.map((row) => ({
+      id: row.id,
+      intakeNumber: row.intake_number,
+      intakeType: row.intake_type,
+      customerName: row.customer_full_name ?? "Неизвестен клиент",
+      customerPhone: row.customer_display_phone ?? "Няма телефон",
+      brand: row.brand,
+      model: row.model,
+      createdAt: row.created_at,
+      createdAtLabel: formatDateTime(row.created_at),
+      archivedAt: row.archived_at ?? null,
+      archivedAtLabel: row.archived_at ? formatDateTime(row.archived_at) : null,
+      isArchived: row.is_archived,
+      printStatus: getPrintStatusLabel(row.latest_print_status ?? undefined),
+      chargedAmountLabel: row.charged_amount ? String(Math.round(Number(row.charged_amount))) : undefined,
+      chargedAmountValue: row.charged_amount ?? undefined,
+      customerVisitCount: Number(row.customer_visit_count ?? 1),
+    } satisfies IntakeDirectoryItem)),
+  };
 }
 
 export async function getPrintQueueData(limit = 30) {

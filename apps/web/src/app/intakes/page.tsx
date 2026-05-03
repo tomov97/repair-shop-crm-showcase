@@ -1,11 +1,13 @@
 import { Suspense } from "react";
 import { AppShell } from "@/components/dashboard/app-shell";
 import { IntakeDirectoryView } from "@/components/dashboard/intake-directory-view";
+import { Pagination } from "@/components/dashboard/pagination";
 import { getCurrentUser, requireUser } from "@/lib/auth";
-import { getIntakeDirectory } from "@/lib/dashboard-data";
+import { getIntakeDirectory, INTAKE_DIRECTORY_PAGE_SIZE } from "@/lib/dashboard-data";
 
-async function ActiveIntakesSection() {
-  const items = await getIntakeDirectory({ intakeType: "service", includeArchived: false, limit: 40 });
+async function ActiveIntakesSection({ page }: { page: number }) {
+  const { items, totalCount } = await getIntakeDirectory({ intakeType: "service", includeArchived: false, page });
+  const totalPages = Math.ceil(totalCount / INTAKE_DIRECTORY_PAGE_SIZE);
 
   return (
     <>
@@ -14,7 +16,7 @@ async function ActiveIntakesSection() {
           <div className="flex flex-row items-center justify-between gap-3">
             <h1 className="text-2xl font-semibold tracking-tight leading-tight">Активни записи</h1>
             <div className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold text-white/90 backdrop-blur-sm">
-              {items.length}
+              {totalCount}
             </div>
           </div>
         </article>
@@ -25,6 +27,7 @@ async function ActiveIntakesSection() {
           emptyMessage="Няма текущи приемания."
           returnTo="/intakes"
         />
+        <Pagination currentPage={page} totalPages={totalPages} basePath="/intakes" />
       </section>
     </>
   );
@@ -45,14 +48,20 @@ function ActiveIntakesSkeleton() {
   );
 }
 
-export default async function IntakesPage() {
+export default async function IntakesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   await requireUser();
   const user = await getCurrentUser();
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
 
   return (
     <AppShell activePath="/intakes" userEmail={user?.email}>
       <Suspense fallback={<ActiveIntakesSkeleton />}>
-        <ActiveIntakesSection />
+        <ActiveIntakesSection page={page} />
       </Suspense>
     </AppShell>
   );

@@ -23,7 +23,23 @@ function FieldError({ message }: { message?: string }) {
   return <p className="text-sm text-[#8a4f22]">{message}</p>;
 }
 
-export function IntakeForm({ defaultType = "service" }: { defaultType?: "service" | "sale" }) {
+type IntakeFormProps = {
+  defaultType?: "service" | "sale";
+  initialFullName?: string;
+  initialCountryCode?: string;
+  initialPhoneNumber?: string;
+  initialBrand?: string;
+  initialModel?: string;
+};
+
+export function IntakeForm({
+  defaultType = "service",
+  initialFullName,
+  initialCountryCode,
+  initialPhoneNumber,
+  initialBrand,
+  initialModel,
+}: IntakeFormProps) {
   const [state, formAction] = useActionState(createIntakeAction, initialState);
   const [submissionToken] = useState(buildSubmissionToken);
   const [intakeType, setIntakeType] = useState<"service" | "sale">(defaultType);
@@ -70,7 +86,7 @@ export function IntakeForm({ defaultType = "service" }: { defaultType?: "service
             id="fullName"
             name="fullName"
             required
-            defaultValue={state.values?.fullName ?? ""}
+            defaultValue={state.values?.fullName ?? initialFullName ?? ""}
             className="min-h-12 w-full rounded-2xl border border-border bg-white px-4 py-3 outline-none transition focus:border-surface-strong"
             placeholder="Например Мария Иванова"
           />
@@ -85,7 +101,7 @@ export function IntakeForm({ defaultType = "service" }: { defaultType?: "service
             <select
               id="countryCode"
               name="countryCode"
-              defaultValue={state.values?.countryCode ?? "+359"}
+              defaultValue={state.values?.countryCode ?? initialCountryCode ?? "+359"}
               className="min-h-12 rounded-2xl border border-border bg-white px-4 py-3 outline-none transition focus:border-surface-strong"
             >
               {PHONE_COUNTRY_CODES.map((countryCode) => (
@@ -99,7 +115,7 @@ export function IntakeForm({ defaultType = "service" }: { defaultType?: "service
               name="phoneNumber"
               required
               inputMode="tel"
-              defaultValue={state.values?.phoneNumber ?? ""}
+              defaultValue={state.values?.phoneNumber ?? initialPhoneNumber ?? ""}
               className="min-h-12 w-full rounded-2xl border border-border bg-white px-4 py-3 outline-none transition focus:border-surface-strong"
               placeholder="876 123 456"
             />
@@ -115,7 +131,7 @@ export function IntakeForm({ defaultType = "service" }: { defaultType?: "service
             id="brand"
             name="brand"
             required
-            defaultValue={state.values?.brand ?? ""}
+            defaultValue={state.values?.brand ?? initialBrand ?? ""}
             className="min-h-12 w-full rounded-2xl border border-border bg-white px-4 py-3 outline-none transition focus:border-surface-strong"
             placeholder="Delonghi"
           />
@@ -130,7 +146,7 @@ export function IntakeForm({ defaultType = "service" }: { defaultType?: "service
             id="model"
             name="model"
             required
-            defaultValue={state.values?.model ?? ""}
+            defaultValue={state.values?.model ?? initialModel ?? ""}
             className="min-h-12 w-full rounded-2xl border border-border bg-white px-4 py-3 outline-none transition focus:border-surface-strong"
             placeholder="Magnifica S"
           />

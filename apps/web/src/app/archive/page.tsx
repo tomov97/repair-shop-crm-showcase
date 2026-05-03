@@ -1,11 +1,13 @@
 import { Suspense } from "react";
 import { AppShell } from "@/components/dashboard/app-shell";
 import { IntakeDirectoryView } from "@/components/dashboard/intake-directory-view";
+import { Pagination } from "@/components/dashboard/pagination";
 import { getCurrentUser, requireUser } from "@/lib/auth";
-import { getIntakeDirectory } from "@/lib/dashboard-data";
+import { getIntakeDirectory, INTAKE_DIRECTORY_PAGE_SIZE } from "@/lib/dashboard-data";
 
-async function ArchivedIntakesSection() {
-  const archivedItems = await getIntakeDirectory({ intakeType: "service", archivedOnly: true, limit: 40 });
+async function ArchivedIntakesSection({ page }: { page: number }) {
+  const { items: archivedItems, totalCount } = await getIntakeDirectory({ intakeType: "service", archivedOnly: true, page });
+  const totalPages = Math.ceil(totalCount / INTAKE_DIRECTORY_PAGE_SIZE);
 
   return (
     <>
@@ -14,7 +16,7 @@ async function ArchivedIntakesSection() {
           <div className="flex flex-row items-center justify-between gap-3">
             <h1 className="text-2xl font-semibold tracking-tight leading-tight">Архив</h1>
             <div className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold text-white/90 backdrop-blur-sm">
-              {archivedItems.length}
+              {totalCount}
             </div>
           </div>
         </article>
@@ -26,6 +28,7 @@ async function ArchivedIntakesSection() {
           emptyMessage="Все още няма архивирани приемания."
           returnTo="/archive"
         />
+        <Pagination currentPage={page} totalPages={totalPages} basePath="/archive" />
       </section>
     </>
   );
@@ -46,14 +49,20 @@ function ArchivedIntakesSkeleton() {
   );
 }
 
-export default async function ArchivePage() {
+export default async function ArchivePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   await requireUser();
   const user = await getCurrentUser();
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
 
   return (
     <AppShell activePath="/archive" userEmail={user?.email}>
       <Suspense fallback={<ArchivedIntakesSkeleton />}>
-        <ArchivedIntakesSection />
+        <ArchivedIntakesSection page={page} />
       </Suspense>
     </AppShell>
   );
