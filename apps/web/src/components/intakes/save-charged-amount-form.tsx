@@ -74,6 +74,16 @@ export function SaveChargedAmountForm({
         >
           {state.message}
         </p>
+      ) : state.ok ? (
+        <p
+          className={
+            compact
+              ? "rounded-xl border border-[#c7e0d2] bg-[#eef7f1] px-3 py-2 text-xs text-[#2f6b4f] xl:max-w-52"
+              : "rounded-2xl border border-[#c7e0d2] bg-[#eef7f1] px-3 py-2 text-sm text-[#2f6b4f]"
+          }
+        >
+          Запазено.
+        </p>
       ) : null}
     </form>
   );

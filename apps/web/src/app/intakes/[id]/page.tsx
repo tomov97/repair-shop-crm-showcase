@@ -140,12 +140,10 @@ export default async function IntakeDetailPage({
                 {/* Value pills */}
                 <PricePopout
                   intakeId={intake.id}
-                  returnTo={`/intakes/${intake.id}`}
                   initialValue={intake.chargedAmountValue ?? ""}
                 />
                 <CoffeeCountPopout
                   intakeId={intake.id}
-                  returnTo={`/intakes/${intake.id}`}
                   initialValue={intake.coffeeCount}
                 />
               </div>

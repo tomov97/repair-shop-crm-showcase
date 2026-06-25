@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo } from "react";
 import { useRouter } from "next/navigation";
 import type { IntakeDirectoryItem } from "@/lib/dashboard-data";
 import { ArchiveIntakeForm } from "@/components/intakes/archive-intake-form";
@@ -120,7 +120,7 @@ function DateFilter({
 
 // ── Intake card ───────────────────────────────────────────────────────────────
 
-function IntakeCard({
+const IntakeCard = memo(function IntakeCard({
   intake,
   returnTo,
   displayDateLabel,
@@ -130,13 +130,16 @@ function IntakeCard({
   displayDateLabel: string;
 }) {
   const router = useRouter();
+  const href = `/intakes/${intake.id}`;
 
   return (
     <div
       role="button"
       tabIndex={0}
-      onClick={() => router.push(`/intakes/${intake.id}`)}
-      onKeyDown={(e) => { if (e.key === "Enter") router.push(`/intakes/${intake.id}`); }}
+      onClick={() => router.push(href)}
+      onKeyDown={(e) => { if (e.key === "Enter") router.push(href); }}
+      onPointerEnter={() => router.prefetch(href)}
+      onFocus={() => router.prefetch(href)}
       className="relative cursor-pointer overflow-hidden rounded-2xl border border-[#e8e4d4] bg-[#fbfaf4] px-4 py-3.5 pl-5 text-[#23443f] shadow-[0_2px_10px_rgba(80,60,20,0.08)] transition hover:brightness-[1.02] active:scale-[0.985] active:brightness-95 before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-[#23443f]"
     >
       {/* Mobile layout */}
@@ -174,7 +177,7 @@ function IntakeCard({
               </span>
             ) : null}
           </div>
-          <PricePopout intakeId={intake.id} returnTo={returnTo} initialValue={intake.chargedAmountValue ?? ""} />
+          <PricePopout intakeId={intake.id} initialValue={intake.chargedAmountValue ?? ""} />
         </div>
       </div>
 
@@ -198,7 +201,7 @@ function IntakeCard({
               Повторен
             </span>
           ) : null}
-          <PricePopout intakeId={intake.id} returnTo={returnTo} initialValue={intake.chargedAmountValue ?? ""} />
+          <PricePopout intakeId={intake.id} initialValue={intake.chargedAmountValue ?? ""} />
           {!intake.isArchived && intake.intakeType !== "sale" ? (
             <ArchiveIntakeForm intakeId={intake.id} returnTo={returnTo} iconOnly />
           ) : null}
@@ -206,7 +209,7 @@ function IntakeCard({
       </div>
     </div>
   );
-}
+});
 
 // ── Main export ───────────────────────────────────────────────────────────────
 

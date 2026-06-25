@@ -1,31 +1,38 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { useActionState } from "react";
-import {
-  saveCoffeeCountAction,
-  type SaveCoffeeCountActionState,
-} from "@/app/actions/intakes";
-
-const initialState: SaveCoffeeCountActionState = {};
+import { useState, useRef, useEffect, useOptimistic } from "react";
+import { saveCoffeeCountAction } from "@/app/actions/intakes";
 
 const POPOUT_HEIGHT = 140;
 
 export function CoffeeCountPopout({
   intakeId,
-  returnTo,
   initialValue = null,
 }: {
   intakeId: string;
-  returnTo: string;
   initialValue?: number | null;
 }) {
   const [open, setOpen] = useState(false);
   const [openAbove, setOpenAbove] = useState(true);
-  const [state, formAction] = useActionState(saveCoffeeCountAction, initialState);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const hasCount = initialValue !== null && initialValue !== undefined;
+  const normalizedValue = initialValue === null || initialValue === undefined ? "" : String(initialValue);
+  // Optimistically reflect the just-saved value until the server revalidation arrives.
+  const [optimisticValue, setOptimisticValue] = useOptimistic(normalizedValue);
+  const hasCount = optimisticValue.trim().length > 0;
+
+  async function handleSubmit(formData: FormData) {
+    const newValue = String(formData.get("coffeeCount") ?? "").trim();
+    setErrorMessage(undefined);
+    setOptimisticValue(newValue);
+    setOpen(false);
+    const result = await saveCoffeeCountAction({}, formData);
+    if (result.message) {
+      setErrorMessage(result.message);
+      setOpen(true);
+    }
+  }
 
   useEffect(() => {
     if (open) {
@@ -39,12 +46,6 @@ export function CoffeeCountPopout({
       }
     }
   }, [open]);
-
-  useEffect(() => {
-    if (state.message) {
-      setOpen(false);
-    }
-  }, [state.message]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -70,7 +71,7 @@ export function CoffeeCountPopout({
       >
         {hasCount ? (
           <>
-            {initialValue}
+            {optimisticValue}
             <span className="text-xs text-[#3d5f58]/60">☕</span>
           </>
         ) : (
@@ -84,18 +85,13 @@ export function CoffeeCountPopout({
           onClick={(e) => e.stopPropagation()}
         >
           <p className="mb-2 text-xs font-medium text-muted">Брой кафета</p>
-          <form
-            action={formAction}
-            onSubmit={() => setOpen(false)}
-            className="flex flex-col gap-2"
-          >
+          <form action={handleSubmit} className="flex flex-col gap-2">
             <input type="hidden" name="intakeId" value={intakeId} />
-            <input type="hidden" name="returnTo" value={returnTo} />
             <input
               ref={inputRef}
               name="coffeeCount"
               inputMode="numeric"
-              defaultValue={hasCount ? String(initialValue) : ""}
+              defaultValue={normalizedValue}
               placeholder="Напр. 5000"
               className="min-h-9 w-full rounded-xl border border-border px-3 py-2 text-sm outline-none transition focus:border-surface-strong"
             />
@@ -105,6 +101,9 @@ export function CoffeeCountPopout({
             >
               Запази
             </button>
+            {errorMessage ? (
+              <p className="rounded-lg bg-[#fff6ed] px-2 py-1 text-xs text-[#7a4e21]">{errorMessage}</p>
+            ) : null}
           </form>
         </div>
       ) : null}

@@ -118,7 +118,6 @@ export function IntakeListCard({
                 </div>
                 <PricePopout
                   intakeId={intake.id}
-                  returnTo={returnTo}
                   initialValue={intake.chargedAmountValue ?? ""}
                 />
               </div>
@@ -151,7 +150,6 @@ export function IntakeListCard({
                 ) : null}
                 <PricePopout
                   intakeId={intake.id}
-                  returnTo={returnTo}
                   initialValue={intake.chargedAmountValue ?? ""}
                 />
                 {!intake.isArchived ? (

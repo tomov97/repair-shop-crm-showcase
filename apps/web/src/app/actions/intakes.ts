@@ -36,10 +36,12 @@ export type ArchiveIntakeActionState = {
 
 export type SaveChargedAmountActionState = {
   message?: string;
+  ok?: boolean;
 };
 
 export type SaveCoffeeCountActionState = {
   message?: string;
+  ok?: boolean;
 };
 
 export type UpdateIntakeActionState = {
@@ -249,7 +251,6 @@ export async function saveChargedAmountAction(
   const user = await requireUser();
   const intakeId = getValidUuid(formData, "intakeId");
   const chargedAmountValue = getOptionalFormValue(formData, "chargedAmount");
-  const returnTo = getOptionalFormValue(formData, "returnTo") ?? "/new-intake";
 
   if (!intakeId) {
     return {
@@ -287,7 +288,7 @@ export async function saveChargedAmountAction(
   revalidatePath("/intakes");
   revalidatePath(`/intakes/${intakeId}`);
 
-  redirect(safeRedirectUrl(returnTo, "/new-intake"));
+  return { ok: true };
 }
 
 export async function saveCoffeeCountAction(
@@ -297,7 +298,6 @@ export async function saveCoffeeCountAction(
   const user = await requireUser();
   const intakeId = getValidUuid(formData, "intakeId");
   const coffeeCountValue = getOptionalFormValue(formData, "coffeeCount");
-  const returnTo = getOptionalFormValue(formData, "returnTo") ?? "/new-intake";
 
   if (!intakeId) {
     return { message: "Липсва приемане." };
@@ -327,7 +327,7 @@ export async function saveCoffeeCountAction(
   revalidatePath("/intakes");
   revalidatePath(`/intakes/${intakeId}`);
 
-  redirect(safeRedirectUrl(returnTo, "/new-intake"));
+  return { ok: true };
 }
 
 export type ReprintIntakeActionState = {

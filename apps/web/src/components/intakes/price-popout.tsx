@@ -1,35 +1,41 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useOptimistic } from "react";
 import { createPortal } from "react-dom";
-import { useActionState } from "react";
-import {
-  saveChargedAmountAction,
-  type SaveChargedAmountActionState,
-} from "@/app/actions/intakes";
-
-const initialState: SaveChargedAmountActionState = {};
+import { saveChargedAmountAction } from "@/app/actions/intakes";
 
 const POPOUT_HEIGHT = 140; // approximate popout height in px
 const POPOUT_WIDTH = 192; // w-48 = 12rem = 192px
 
 export function PricePopout({
   intakeId,
-  returnTo,
   initialValue = "",
 }: {
   intakeId: string;
-  returnTo: string;
   initialValue?: string | number;
 }) {
   const [open, setOpen] = useState(false);
   const [popoutStyle, setPopoutStyle] = useState<React.CSSProperties>({});
-  const [state, formAction] = useActionState(saveChargedAmountAction, initialState);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const inputRef = useRef<HTMLInputElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoutRef = useRef<HTMLDivElement>(null);
   const normalizedValue = initialValue === undefined || initialValue === null ? "" : String(initialValue);
-  const hasAmount = normalizedValue.trim().length > 0;
+  // Optimistically reflect the just-saved value until the server revalidation arrives.
+  const [optimisticValue, setOptimisticValue] = useOptimistic(normalizedValue);
+  const hasAmount = optimisticValue.trim().length > 0;
+
+  async function handleSubmit(formData: FormData) {
+    const newValue = String(formData.get("chargedAmount") ?? "").trim();
+    setErrorMessage(undefined);
+    setOptimisticValue(newValue);
+    setOpen(false);
+    const result = await saveChargedAmountAction({}, formData);
+    if (result.message) {
+      setErrorMessage(result.message);
+      setOpen(true);
+    }
+  }
 
   useEffect(() => {
     if (open && buttonRef.current) {
@@ -46,12 +52,6 @@ export function PricePopout({
       });
     }
   }, [open]);
-
-  useEffect(() => {
-    if (state.message) {
-      setOpen(false);
-    }
-  }, [state.message]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -83,13 +83,8 @@ export function PricePopout({
       onClick={(e) => e.stopPropagation()}
     >
       <p className="mb-2 text-xs font-medium text-muted">Сума (€)</p>
-      <form
-        action={formAction}
-        onSubmit={() => setOpen(false)}
-        className="flex flex-col gap-2"
-      >
+      <form action={handleSubmit} className="flex flex-col gap-2">
         <input type="hidden" name="intakeId" value={intakeId} />
-        <input type="hidden" name="returnTo" value={returnTo} />
         <input
           ref={inputRef}
           name="chargedAmount"
@@ -104,6 +99,9 @@ export function PricePopout({
         >
           Запази
         </button>
+        {errorMessage ? (
+          <p className="rounded-lg bg-[#fff6ed] px-2 py-1 text-xs text-[#7a4e21]">{errorMessage}</p>
+        ) : null}
       </form>
     </div>
   ) : null;
@@ -119,7 +117,7 @@ export function PricePopout({
       >
         {hasAmount ? (
           <>
-            {normalizedValue}
+            {optimisticValue}
             <span className="text-xs text-[#7b6530]/60">€</span>
           </>
         ) : (
