@@ -6,7 +6,8 @@ Repair-shop CRM with label printing. Internal tool for a small family business.
 
 - **Stack**: Next.js 16, React 19, TypeScript, Tailwind CSS 4, Supabase, Node.js print agent
 - **Monorepo**: npm workspaces — `apps/web` (PWA) and `apps/print-agent` (Windows worker)
-- **DB**: Supabase Postgres — tables: `customers`, `intakes` (discriminator: `intake_type ∈ {service, sale}`), `print_jobs`, `audit_events`. Future tables planned: `intake_photos`, `notifications`.
+- **DB**: Supabase Postgres — tables: `customers`, `intakes` (discriminator: `intake_type ∈ {service, sale}`), `print_jobs`, `audit_events`, `intake_photos` (before/after photos). Future tables planned: `notifications`.
+- **Object storage**: Cloudflare R2 (bucket `kafemashini-intake-photos`) for intake photos — S3-compatible via `@aws-sdk/client-s3`, accessed in `apps/web/src/lib/storage/r2.ts`. Reads via presigned GET URLs (no egress through the app). Env: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` (token must be **Object Read & Write**), `R2_BUCKET`.
 - **Printer**: Brother QL-800 connected via USB to a Windows desktop
 - **Theme colors**: `#23443f` (dark green) and `#f8f6eb` (cream)
 
@@ -55,7 +56,10 @@ npm run typecheck    # typecheck all
 ### `apps/web/src/lib/` — server-side data layer
 - `intakes.ts` — all intake CRUD, dashboard data, print job creation, customer matching
 - `dashboard-data.ts` — intake directory queries, trend series, print queue
-- `auth.ts` — getCurrentUser (cached), requireUser (redirects)
+- `auth.ts` — getCurrentUser (cached), requireUser (redirects). In API routes use `getCurrentUser` (returns null), not `requireUser` (throws redirect)
+- `intake-photos.ts` — before/after photo CRUD + presigned R2 URLs + audit events
+- `storage/r2.ts` — Cloudflare R2 client (put/presign/delete)
+- `image-compression.ts` — client-side WebP compression config (`PHOTO_COMPRESSION`)
 
 ### `apps/web/src/app/` — Next.js pages (server components + Suspense streaming)
 ### `apps/web/src/components/` — UI components (client components only where needed)

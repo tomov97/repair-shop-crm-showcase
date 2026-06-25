@@ -1,14 +1,17 @@
 import type { ReactNode } from "react";
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArchiveIntakeForm } from "@/components/intakes/archive-intake-form";
 import { ReprintButton } from "@/components/intakes/reprint-button";
 import { AppShell } from "@/components/dashboard/app-shell";
 import { EditIntakeForm } from "@/components/intakes/edit-intake-form";
+import { IntakePhotosSection } from "@/components/intakes/intake-photos-section";
 import { PricePopout } from "@/components/intakes/price-popout";
 import { CoffeeCountPopout } from "@/components/intakes/coffee-count-popout";
 import { getCurrentUser, requireUser } from "@/lib/auth";
 import { getIntakeDetail } from "@/lib/intakes";
+import { getIntakePhotos } from "@/lib/intake-photos";
 import { splitStructuredPhone } from "@/lib/phone";
 
 function DetailCard({
@@ -24,6 +27,11 @@ function DetailCard({
       <div className="mt-4 space-y-3 text-sm leading-6 text-foreground">{children}</div>
     </article>
   );
+}
+
+async function PhotosLoader({ intakeId }: { intakeId: string }) {
+  const photos = await getIntakePhotos(intakeId);
+  return <IntakePhotosSection intakeId={intakeId} initialPhotos={photos} />;
 }
 
 export default async function IntakeDetailPage({
@@ -190,6 +198,12 @@ export default async function IntakeDetailPage({
                 model={intake.model}
                 issueDescription={intake.issueDescription}
               />
+            </DetailCard>
+
+            <DetailCard title="Снимки">
+              <Suspense fallback={<p className="text-sm text-muted">Зареждане…</p>}>
+                <PhotosLoader intakeId={intake.id} />
+              </Suspense>
             </DetailCard>
           </div>
         </section>
