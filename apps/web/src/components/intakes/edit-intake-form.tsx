@@ -39,7 +39,7 @@ export function EditIntakeForm({
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2 md:col-span-2">
           <label htmlFor={`fullName-${intakeId}`} className="text-sm font-medium text-foreground">
-            Име на клиент
+            Customer name
           </label>
           <input
             id={`fullName-${intakeId}`}
@@ -51,7 +51,7 @@ export function EditIntakeForm({
 
         <div className="space-y-2 md:col-span-2">
           <label htmlFor={`phoneNumber-${intakeId}`} className="text-sm font-medium text-foreground">
-            Телефон
+            Phone
           </label>
           <div className="grid grid-cols-[116px_minmax(0,1fr)] gap-2">
             <select
@@ -77,7 +77,7 @@ export function EditIntakeForm({
 
         <div className="space-y-2">
           <label htmlFor={`brand-${intakeId}`} className="text-sm font-medium text-foreground">
-            Марка
+            Brand
           </label>
           <input
             id={`brand-${intakeId}`}
@@ -89,7 +89,7 @@ export function EditIntakeForm({
 
         <div className="space-y-2">
           <label htmlFor={`model-${intakeId}`} className="text-sm font-medium text-foreground">
-            Модел
+            Model
           </label>
           <input
             id={`model-${intakeId}`}
@@ -102,9 +102,9 @@ export function EditIntakeForm({
         <div className="space-y-2 md:col-span-2">
           <label htmlFor={`issueDescription-${intakeId}`} className="text-sm font-medium text-foreground">
             {isSale ? (
-              <>Бележка <span className="text-muted font-normal">(по желание)</span></>
+              <>Note <span className="text-muted font-normal">(optional)</span></>
             ) : (
-              "Описание на проблема"
+              "Problem description"
             )}
           </label>
           <textarea
@@ -123,7 +123,7 @@ export function EditIntakeForm({
         </p>
       ) : null}
 
-      <SubmitButton label="Запази промените" pendingLabel="Запазване..." />
+      <SubmitButton label="Save changes" pendingLabel="Saving..." />
     </form>
   );
 }

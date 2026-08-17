@@ -130,7 +130,7 @@ type CreateIntakeInput = {
   customerResolution?: string | null;
 };
 
-// For sales, issue_description is the optional "Бележка" note. We persist
+// For sales, issue_description is the optional "Note" note. We persist
 // empty values as NULL so the schema constraint
 // (intakes_service_requires_issue) holds — the column is nullable, but
 // service rows must have a non-empty value.
@@ -191,7 +191,7 @@ function mapErrorMessage(error: { message?: string } | null | undefined, fallbac
   }
 
   if (error.message?.includes("schema cache")) {
-    return "Връзката към базата е готова частично, но схемата още не е приложена или не е обновена.";
+    return "The database connection is partially ready, but the schema has not been applied or updated yet.";
   }
 
   // Log the real error server-side for debugging; return generic message to client
@@ -203,15 +203,15 @@ function mapErrorMessage(error: { message?: string } | null | undefined, fallbac
 function getPrintStatusLabel(status: string | null | undefined) {
   switch (status) {
     case "queued":
-      return "Чака печат";
+      return "Queued";
     case "printing":
-      return "Печата се";
+      return "Printing";
     case "printed":
-      return "Отпечатан";
+      return "Printed";
     case "failed":
-      return "Грешка при печат";
+      return "Print error";
     default:
-      return "Няма задача";
+      return "No job";
   }
 }
 
@@ -276,7 +276,7 @@ export async function getDashboardData(): Promise<DashboardData> {
         totalCount: 0,
       },
       recentIntakes: [],
-      backendMessage: mapErrorMessage(errors[0], "Не успяхме да заредим данните от Supabase."),
+      backendMessage: mapErrorMessage(errors[0], "Could not load data from Supabase."),
     };
   }
 
@@ -312,8 +312,8 @@ export async function getDashboardData(): Promise<DashboardData> {
         id: intake.id,
         intakeNumber: intake.intake_number,
         intakeType: intake.intake_type,
-        customerName: intake.customers?.full_name ?? "Неизвестен клиент",
-        customerPhone: intake.customers?.display_phone ?? "Няма телефон",
+        customerName: intake.customers?.full_name ?? "Unknown customer",
+        customerPhone: intake.customers?.display_phone ?? "No phone",
         brand: intake.brand,
         model: intake.model,
         createdAtLabel: formatDateTime(intake.created_at),
@@ -399,8 +399,8 @@ export async function getIntakeDetail(intakeId: string): Promise<IntakeDetail | 
     model: intake.model,
     issueDescription: intake.issue_description,
     notes: intake.notes,
-    customerName: intake.customers?.full_name ?? "Неизвестен клиент",
-    customerPhone: intake.customers?.display_phone ?? "Няма телефон",
+    customerName: intake.customers?.full_name ?? "Unknown customer",
+    customerPhone: intake.customers?.display_phone ?? "No phone",
     customerVisitCount: previousIntakes.length + 1,
     previousIntakes: previousIntakes.map((item) => ({
       id: item.id,
@@ -477,7 +477,7 @@ export async function createIntake(input: CreateIntakeInput): Promise<CreateInta
   if (!normalizedPhone) {
     return {
       type: "error",
-      message: "Въведи валиден телефонен номер (само цифри).",
+      message: "Enter a valid phone number (digits only).",
     };
   }
 
@@ -498,7 +498,7 @@ export async function createIntake(input: CreateIntakeInput): Promise<CreateInta
   if (existingIntakeError && !existingIntakeError.message.includes("0 rows")) {
     return {
       type: "error",
-      message: mapErrorMessage(existingIntakeError, "Не успяхме да проверим за дублирано изпращане."),
+      message: mapErrorMessage(existingIntakeError, "Could not check for a duplicate submission."),
     };
   }
 
@@ -511,7 +511,7 @@ export async function createIntake(input: CreateIntakeInput): Promise<CreateInta
   if (phoneMatchesResult.error) {
     return {
       type: "error",
-      message: mapErrorMessage(phoneMatchesResult.error, "Не успяхме да проверим съществуващите клиенти."),
+      message: mapErrorMessage(phoneMatchesResult.error, "Could not check existing customers."),
     };
   }
 
@@ -529,7 +529,7 @@ export async function createIntake(input: CreateIntakeInput): Promise<CreateInta
           id: customer.id,
           fullName: customer.full_name,
           displayPhone: customer.display_phone,
-          reason: "Съвпада телефонът",
+          reason: "Phone matches",
         })),
       };
     }
@@ -553,7 +553,7 @@ export async function createIntake(input: CreateIntakeInput): Promise<CreateInta
       if (createCustomerError || !createdCustomer) {
         return {
           type: "error",
-          message: mapErrorMessage(createCustomerError, "Не успяхме да създадем клиент."),
+          message: mapErrorMessage(createCustomerError, "Could not create the customer."),
         };
       }
 
@@ -564,7 +564,7 @@ export async function createIntake(input: CreateIntakeInput): Promise<CreateInta
   if (!customerId) {
     return {
       type: "error",
-      message: "Не успяхме да определим клиент за приемането.",
+      message: "Could not resolve a customer for the intake.",
     };
   }
 
@@ -608,7 +608,7 @@ export async function createIntake(input: CreateIntakeInput): Promise<CreateInta
   if (createIntakeError || !createdIntake) {
     return {
       type: "error",
-      message: mapErrorMessage(createIntakeError, "Не успяхме да запазим приемането."),
+      message: mapErrorMessage(createIntakeError, "Could not save the intake."),
     };
   }
 
@@ -676,7 +676,7 @@ export async function saveChargedAmount(input: {
   if (existingIntakeError || !existingIntake) {
     return {
       type: "error",
-      message: mapErrorMessage(existingIntakeError, "Не успяхме да намерим приемането."),
+      message: mapErrorMessage(existingIntakeError, "Could not find the intake."),
     };
   }
 
@@ -690,7 +690,7 @@ export async function saveChargedAmount(input: {
   if (updateError) {
     return {
       type: "error",
-      message: mapErrorMessage(updateError, "Не успяхме да запазим сумата."),
+      message: mapErrorMessage(updateError, "Could not save the amount."),
     };
   }
 
@@ -729,7 +729,7 @@ export async function saveCoffeeCount(input: {
   if (existingIntakeError || !existingIntake) {
     return {
       type: "error",
-      message: mapErrorMessage(existingIntakeError, "Не успяхме да намерим приемането."),
+      message: mapErrorMessage(existingIntakeError, "Could not find the intake."),
     };
   }
 
@@ -743,7 +743,7 @@ export async function saveCoffeeCount(input: {
   if (updateError) {
     return {
       type: "error",
-      message: mapErrorMessage(updateError, "Не успяхме да запазим броя кафета."),
+      message: mapErrorMessage(updateError, "Could not save the coffee count."),
     };
   }
 
@@ -778,7 +778,7 @@ export async function updateIntake(input: {
   if (!normalizedPhone) {
     return {
       type: "error",
-      message: "Въведи валиден телефонен номер (само цифри).",
+      message: "Enter a valid phone number (digits only).",
     };
   }
 
@@ -791,7 +791,7 @@ export async function updateIntake(input: {
   if (existingIntakeError || !existingIntake) {
     return {
       type: "error",
-      message: mapErrorMessage(existingIntakeError, "Не успяхме да намерим приемането."),
+      message: mapErrorMessage(existingIntakeError, "Could not find the intake."),
     };
   }
 
@@ -804,7 +804,7 @@ export async function updateIntake(input: {
   if (existingCustomerError || !existingCustomer) {
     return {
       type: "error",
-      message: mapErrorMessage(existingCustomerError, "Не успяхме да намерим клиента."),
+      message: mapErrorMessage(existingCustomerError, "Could not find the customer."),
     };
   }
 
@@ -820,7 +820,7 @@ export async function updateIntake(input: {
   if (customerUpdateError) {
     return {
       type: "error",
-      message: mapErrorMessage(customerUpdateError, "Не успяхме да обновим клиента."),
+      message: mapErrorMessage(customerUpdateError, "Could not update the customer."),
     };
   }
 
@@ -840,7 +840,7 @@ export async function updateIntake(input: {
   if (intakeUpdateError) {
     return {
       type: "error",
-      message: mapErrorMessage(intakeUpdateError, "Не успяхме да обновим приемането."),
+      message: mapErrorMessage(intakeUpdateError, "Could not update the intake."),
     };
   }
 
@@ -896,7 +896,7 @@ export async function requeuePrintJob(input: {
   if (intakeError || !intake) {
     return {
       type: "error",
-      message: mapErrorMessage(intakeError, "Не успяхме да намерим приемането."),
+      message: mapErrorMessage(intakeError, "Could not find the intake."),
     };
   }
 
@@ -914,7 +914,7 @@ export async function requeuePrintJob(input: {
   if (insertError || !newJob) {
     return {
       type: "error",
-      message: mapErrorMessage(insertError, "Не успяхме да добавим задача за печат."),
+      message: mapErrorMessage(insertError, "Could not queue the print job."),
     };
   }
 
@@ -944,14 +944,14 @@ export async function archiveIntake(input: {
   if (existingIntakeError || !existingIntake) {
     return {
       type: "error",
-      message: mapErrorMessage(existingIntakeError, "Не успяхме да намерим приемането."),
+      message: mapErrorMessage(existingIntakeError, "Could not find the intake."),
     };
   }
 
   if ((existingIntake as { intake_type?: string }).intake_type === "sale") {
     return {
       type: "error",
-      message: "Продажбите не могат да се архивират.",
+      message: "Sales cannot be archived.",
     };
   }
 
@@ -978,7 +978,7 @@ export async function archiveIntake(input: {
   if (archiveError) {
     return {
       type: "error",
-      message: mapErrorMessage(archiveError, "Не успяхме да архивираме приемането."),
+      message: mapErrorMessage(archiveError, "Could not archive the intake."),
     };
   }
 

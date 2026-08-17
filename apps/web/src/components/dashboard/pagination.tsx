@@ -52,7 +52,7 @@ export function Pagination({ currentPage, totalPages, basePath }: PaginationProp
     <nav aria-label="Pagination" className="mt-8 flex items-center justify-center gap-1 sm:gap-1.5">
       {/* Prev arrow */}
       {hasPrev ? (
-        <Link href={pageHref(basePath, currentPage - 1)} className={inactiveBtn} aria-label="Предишна страница">
+        <Link href={pageHref(basePath, currentPage - 1)} className={inactiveBtn} aria-label="Previous page">
           {PrevArrow}
         </Link>
       ) : (
@@ -78,7 +78,7 @@ export function Pagination({ currentPage, totalPages, basePath }: PaginationProp
 
       {/* Next arrow */}
       {hasNext ? (
-        <Link href={pageHref(basePath, currentPage + 1)} className={inactiveBtn} aria-label="Следваща страница">
+        <Link href={pageHref(basePath, currentPage + 1)} className={inactiveBtn} aria-label="Next page">
           {NextArrow}
         </Link>
       ) : (

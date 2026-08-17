@@ -24,7 +24,7 @@ export function ArchiveIntakeForm({
   const [state, formAction] = useActionState(archiveIntakeAction, initialState);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    const shouldArchive = window.confirm("Сигурни ли сте, че искате да архивирате това приемане?");
+    const shouldArchive = window.confirm("Are you sure you want to archive this intake?");
     if (!shouldArchive) {
       event.preventDefault();
     }
@@ -37,7 +37,7 @@ export function ArchiveIntakeForm({
         <input type="hidden" name="returnTo" value={returnTo} />
         <button
           type="submit"
-          title="Архивирай"
+          title="Archive"
           className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#c0392b]/12 text-[#c0392b] transition hover:bg-[#c0392b]/20 active:scale-95"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -72,8 +72,8 @@ export function ArchiveIntakeForm({
       ) : null}
 
       <SubmitButton
-        label="Архивирай"
-        pendingLabel="Архивиране..."
+        label="Archive"
+        pendingLabel="Archiving..."
         variant="danger"
         size={compact ? "compact" : "default"}
       />

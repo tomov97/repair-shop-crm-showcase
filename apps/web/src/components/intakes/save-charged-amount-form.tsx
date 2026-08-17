@@ -34,14 +34,14 @@ export function SaveChargedAmountForm({
           htmlFor={`chargedAmount-${intakeId}`}
           className={compact ? "text-xs font-medium text-muted lg:sr-only" : "text-sm font-medium text-foreground"}
         >
-          Сума за плащане
+          Amount charged
         </label>
         <input
           id={`chargedAmount-${intakeId}`}
           name="chargedAmount"
           inputMode="decimal"
           defaultValue={normalizedInitialValue}
-          placeholder="Например 120"
+          placeholder="e.g. 120"
           className={
             compact
               ? `min-h-9 w-full min-w-0 rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-surface-strong xl:w-32 ${
@@ -57,8 +57,8 @@ export function SaveChargedAmountForm({
           }
         />
         <SubmitButton
-          label={hasRecordedAmount ? "Обнови сумата" : "Запази сумата"}
-          pendingLabel="Запазване..."
+          label={hasRecordedAmount ? "Update amount" : "Save amount"}
+          pendingLabel="Saving..."
           variant={compact ? "secondary" : "primary"}
           size={compact ? "compact" : "default"}
         />
@@ -82,7 +82,7 @@ export function SaveChargedAmountForm({
               : "rounded-2xl border border-[#c7e0d2] bg-[#eef7f1] px-3 py-2 text-sm text-[#2f6b4f]"
           }
         >
-          Запазено.
+          Saved.
         </p>
       ) : null}
     </form>

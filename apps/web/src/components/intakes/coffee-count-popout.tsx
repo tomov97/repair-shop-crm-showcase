@@ -67,7 +67,7 @@ export function CoffeeCountPopout({
         type="button"
         onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
         className="inline-flex items-center gap-1 rounded-full border border-[#c1d4cf] bg-[#e0ebe8] px-3 py-1.5 text-sm font-semibold text-[#3d5f58] transition hover:bg-[#d0e3e0] active:scale-95"
-        title="Въведи брой кафета"
+        title="Enter coffee count"
       >
         {hasCount ? (
           <>
@@ -75,7 +75,7 @@ export function CoffeeCountPopout({
             <span className="text-xs text-[#3d5f58]/60">☕</span>
           </>
         ) : (
-          <span className="text-sm font-medium text-[#3d5f58]/60">+ кафета</span>
+          <span className="text-sm font-medium text-[#3d5f58]/60">+ coffees</span>
         )}
       </button>
 
@@ -84,7 +84,7 @@ export function CoffeeCountPopout({
           className={`absolute right-0 z-30 w-48 rounded-2xl border border-border bg-white p-3 shadow-[0_8px_32px_rgba(20,30,28,0.18)] ${popoutPositionClass}`}
           onClick={(e) => e.stopPropagation()}
         >
-          <p className="mb-2 text-xs font-medium text-muted">Брой кафета</p>
+          <p className="mb-2 text-xs font-medium text-muted">Coffee count</p>
           <form action={handleSubmit} className="flex flex-col gap-2">
             <input type="hidden" name="intakeId" value={intakeId} />
             <input
@@ -92,14 +92,14 @@ export function CoffeeCountPopout({
               name="coffeeCount"
               inputMode="numeric"
               defaultValue={normalizedValue}
-              placeholder="Напр. 5000"
+              placeholder="e.g. 5000"
               className="min-h-9 w-full rounded-xl border border-border px-3 py-2 text-sm outline-none transition focus:border-surface-strong"
             />
             <button
               type="submit"
               className="inline-flex min-h-8 w-full items-center justify-center rounded-xl bg-surface-strong px-3 text-sm font-semibold text-white transition hover:opacity-90"
             >
-              Запази
+              Save
             </button>
             {errorMessage ? (
               <p className="rounded-lg bg-[#fff6ed] px-2 py-1 text-xs text-[#7a4e21]">{errorMessage}</p>

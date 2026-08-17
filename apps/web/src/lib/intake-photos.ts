@@ -84,7 +84,7 @@ export async function createIntakePhoto(params: {
   try {
     await putObject(storageKey, body, contentType);
   } catch {
-    return { type: "error", message: "Грешка при качване на снимката." };
+    return { type: "error", message: "Could not upload the photo." };
   }
 
   const supabase = getSupabaseAdminClient();
@@ -106,7 +106,7 @@ export async function createIntakePhoto(params: {
 
   if (error || !data) {
     await deleteObject(storageKey).catch(() => null);
-    return { type: "error", message: "Грешка при запис на снимката." };
+    return { type: "error", message: "Could not save the photo." };
   }
 
   await supabase.from("audit_events").insert({
@@ -148,7 +148,7 @@ export async function deleteIntakePhoto(params: {
     .single();
 
   if (error || !data) {
-    return { type: "error", message: "Снимката не е намерена." };
+    return { type: "error", message: "Photo not found." };
   }
 
   const row = data as { id: string; storage_key: string; intake_id: string; photo_type: string };
@@ -159,7 +159,7 @@ export async function deleteIntakePhoto(params: {
     .eq("id", photoId);
 
   if (updateError) {
-    return { type: "error", message: "Грешка при изтриване на снимката." };
+    return { type: "error", message: "Could not delete the photo." };
   }
 
   await deleteObject(row.storage_key).catch(() => null);

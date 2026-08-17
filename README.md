@@ -1,103 +1,107 @@
-# CRM Kafemashini Label Maker
+# Coffee Machine Repair CRM
 
-This repository contains the v1 foundation for a repair-shop CRM focused on fast intake, reliable label printing, and easy retrieval of active and archived repair records.
+A custom CRM for a family repair business, built from scratch. It replaced a paper-ticket workflow with a system that prints a QR label for every machine that comes through the door, and pulls up that machine's full history when the label is scanned.
 
-The product is intended for a small family business and is optimized for:
-- very fast intake on mobile
-- reliable day-to-day use on a shop laptop
-- automatic QR label printing after intake submission
-- easy record retrieval through QR scan or search
-- low operational complexity
+> **This is the English demo build** of a system running in production for a Bulgarian repair shop. The production UI is in Bulgarian; this branch translates it and runs against seeded demo data so the code and the interface can be read by anyone. No customer data is included.
 
-## Product Principles
+## The problem it solves
 
-- User-facing app copy must be entirely in Bulgarian.
-- Repository artifacts stay in English.
-- Reliability is more important than maximum automation in v1.
-- Intake must be saved before printing.
-- Print failures must be recoverable without losing intake data.
-- Mobile and desktop must offer the same core capabilities, with device-specific UX.
+The shop ran on handwritten tickets taped to machines. Three things went wrong constantly:
 
-## v1 Scope
+- **Tickets went missing.** A machine on the bench with no paper meant reconstructing the job from memory.
+- **Disputes had no evidence.** Customers argued about what was repaired, when, and for how much. There was no record to point at.
+- **Lookup was manual.** Answering "what did you do to my machine last spring?" meant digging through a physical archive.
 
-Included in v1:
-- intake creation for one machine per record
-- customer matching with controlled auto-linking
-- QR label generation and queued printing
-- search by phone, customer name, and intake number
-- direct record opening via QR scan
-- basic record editing
-- current/archive split
-- charged amount captured when archiving
-- label reprint flow
+## How it works
 
-Out of scope for v1:
-- kanban/stage workflow
-- tasks and reminders
-- messaging automation
-- customer-facing portal
-- intake photos
-- advanced analytics and reporting
-
-## Concrete v1 Stack
-
-- Monorepo: npm workspaces
-- Web app: Next.js 16 App Router, React 19, TypeScript, Tailwind CSS 4
-- Form and validation: React Hook Form + Zod
-- Backend: Supabase for Postgres, auth, storage, and server-side integration
-- Print host: Node.js TypeScript worker on a Windows PC during work hours
-- Printer: USB-connected label printer near the print host
-
-The technical details and product decisions are documented in the `docs/` directory.
-
-## Repository Structure
-
-```text
-.
-|-- .codex/
-|   `-- config.toml
-|-- apps/
-|   |-- print-agent/
-|   `-- web/
-|-- docs/
-|   |-- architecture.md
-|   |-- data-model.md
-|   |-- design-system.md
-|   |-- implementation-roadmap.md
-|   |-- operations.md
-|   `-- spec-v1.md
-|-- package.json
-|-- tsconfig.base.json
-|-- AGENTS.md
-`-- README.md
+```
+Intake form (mobile)
+        │
+        ▼
+ Save to Postgres ──────────► intake number + QR scan token generated
+        │                     (atomic DB sequence, never resets)
+        ▼
+ Queue a print job
+        │
+        ▼
+ Print agent on the shop PC ──► polls Supabase, downloads the label,
+        │                        prints via the OS driver, reports status
+        ▼
+ Label on the machine ────────► scan → /t/{token} → full repair history
 ```
 
-## Working Agreement
+The ordering is the whole design. **Intake data is committed before any print attempt.** A jammed printer, an offline PC, or a bad USB cable produces a failed job row and nothing else. The record is already safe, and staff reprint with one tap.
 
-- Start implementation only after the documentation baseline is agreed.
-- Keep product decisions in the docs rather than scattering them across chat history.
-- Treat the docs as the source of truth for the first implementation pass.
+Print jobs are attempted exactly once and never auto-retried. Silent retries against a physical printer produce duplicate labels on a customer's machine, which is worse than a visible failure.
 
-## Local Setup
+## Features
 
-Install dependencies from the repository root:
+- **Fast mobile intake.** One machine per record, phone-first form, customer auto-matching by normalized phone number.
+- **Automatic QR label printing** to a Brother QL-800 over USB.
+- **Scan to open.** The QR resolves to a login-gated record page.
+- **Before/after photos**, compressed client-side to WebP and stored in Cloudflare R2 with presigned reads.
+- **Search** by customer, phone, machine, or intake number.
+- **Active / archive split**, with the charged amount captured on archive.
+- **Sales records** alongside repairs, sharing the same table via a discriminator column with DB-enforced constraints.
+- **Audit trail** on every state change.
+- **Print queue view** showing queued, printing, printed, and failed jobs with the underlying error.
+
+## Architecture
+
+npm workspaces monorepo.
+
+| Path | What it is |
+| --- | --- |
+| `apps/web` | Next.js 16 App Router PWA. Server components with Suspense streaming, server actions for mutations. |
+| `apps/print-agent` | Standalone Node.js worker on the shop's Windows PC. Polls for queued jobs, prints, reports back. |
+| `supabase/migrations` | Ordered SQL migrations. Business rules live in DB constraints, not just app code. |
+
+**Stack:** Next.js 16, React 19, TypeScript, Tailwind CSS 4, Supabase (Postgres + Auth), Cloudflare R2, Node.js.
+
+### Decisions worth calling out
+
+**Constraints in the database, not the application.** Sales records can never be archived, and service records always require a problem description. Both are `CHECK` constraints, so a bug in the app cannot violate them. See `supabase/migrations/202604170001_harden_intake_type_constraints.sql`.
+
+**Intake numbers come from a Postgres sequence.** The original implementation used a retry loop against a daily counter, which is a race under concurrent intake. A sequence is atomic and never resets, which also let the shop continue its old paper numbering without a gap.
+
+**No silent defaults on filtered queries.** The directory RPC originally defaulted `p_intake_type` to `'service'`. That default was dropped so a forgotten filter fails loudly instead of silently returning partial data.
+
+**No hard deletes.** Business records are archived or soft-deleted. Photos carry `deleted_at` rather than being removed.
+
+## Running the demo locally
+
+You need a throwaway Supabase project. Do not point this at anything real.
 
 ```bash
 npm install
+
+# 1. Apply the schema to your demo project
+npx supabase db push --db-url "postgresql://postgres:PASSWORD@db.PROJECT.supabase.co:5432/postgres"
+
+# 2. Configure
+cp apps/web/.env.demo.example apps/web/.env.demo   # then fill it in
+
+# 3. Seed realistic demo data
+node scripts/seed-demo.mjs
+
+# 4. Run
+npm run dev
 ```
 
-Start the web app:
+Then open `http://localhost:3000/setup` to create the first account.
+
+The seed script generates ~60 intakes weighted across the last six months, so the trend chart and pagination show real shape rather than an empty state.
+
+## Commands
 
 ```bash
-npm run dev:web
+npm run dev              # web app
+npm run dev:print-agent  # print agent
+npm run build            # build all
+npm run lint             # lint web
+npm run typecheck        # typecheck all
 ```
 
-Start the print agent:
+## Built with Claude Code
 
-```bash
-npm run dev:print-agent
-```
-
-Populate environment variables from:
-- `apps/web/.env.example`
-- `apps/print-agent/.env.example`
+The entire system was designed and implemented with [Claude Code](https://claude.com/claude-code) as the primary development environment, including the schema design, the print pipeline, and the hardware integration debugging.

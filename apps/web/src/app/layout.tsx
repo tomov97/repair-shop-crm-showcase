@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CRM за сервиз на кафемашини",
-  description: "Вътрешна CRM система за приемане, търсене и архивиране на сервизни поръчки.",
+  title: "Coffee Machine Repair CRM",
+  description: "Internal CRM for intake, search and archiving of repair jobs.",
   robots: {
     index: false,
     follow: false,
@@ -32,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="bg"
+      lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>

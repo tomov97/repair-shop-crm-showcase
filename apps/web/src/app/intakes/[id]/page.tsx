@@ -71,7 +71,7 @@ export default async function IntakeDetailPage({
 
             <div className="grid gap-2 rounded-[1.25rem] bg-white/10 px-4 py-3 text-sm text-white/85 backdrop-blur-sm">
               <div>
-                <p className="font-semibold">Създадено</p>
+                <p className="font-semibold">Created</p>
                 <p>{intake.createdAtLabel}</p>
               </div>
             </div>
@@ -81,42 +81,42 @@ export default async function IntakeDetailPage({
         <section className="mt-3 grid gap-5">
           {/* Status card — first on mobile and desktop */}
           <div>
-            <DetailCard title="Статус и действия">
+            <DetailCard title="Status and actions">
               <div className="flex items-center justify-between gap-3">
                 {intake.isArchived ? (
                   <div className="inline-flex flex-col rounded-xl border border-[#f5c6c2] bg-[#fdf0ef] px-3 py-1.5 text-sm">
-                    <span className="font-semibold text-[#922b21]">Архивиран</span>
+                    <span className="font-semibold text-[#922b21]">Archived</span>
                     {intake.archivedAtLabel ? (
                       <span className="text-xs text-[#922b21]/70">{intake.archivedAtLabel}</span>
                     ) : null}
                   </div>
                 ) : (
                   <div className="inline-flex rounded-xl border border-[#c7d9cd] bg-[#edf5ef] px-3 py-1.5 text-sm font-semibold text-[#23443f]">
-                    Активен
+                    Active
                   </div>
                 )}
                 <p className="text-sm text-muted">
                   {(intake.customerVisitCount ?? 1) > 1
-                    ? `${intake.customerVisitCount} приемания`
-                    : "Първо приемане"}
+                    ? `${intake.customerVisitCount} intakes`
+                    : "First intake"}
                 </p>
               </div>
 
               {intake.chargedAmountValue ? (
                 <p className="text-sm">
-                  <span className="font-semibold">Записана сума:</span> {intake.chargedAmountLabel}
+                  <span className="font-semibold">Amount recorded:</span> {intake.chargedAmountLabel}
                 </p>
               ) : null}
 
               {intake.coffeeCount !== null ? (
                 <p className="text-sm">
-                  <span className="font-semibold">Брой кафета:</span> {intake.coffeeCount}
+                  <span className="font-semibold">Coffee count:</span> {intake.coffeeCount}
                 </p>
               ) : null}
 
               {intake.intakeType === "sale" ? (
                 <div className="inline-flex rounded-xl border border-[#c7d4e8] bg-[#edf2f9] px-3 py-1.5 text-sm font-semibold text-[#2b4a7a]">
-                  Продажба
+                  Sale
                 </div>
               ) : null}
 
@@ -156,7 +156,7 @@ export default async function IntakeDetailPage({
                   <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
                   <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
                 </svg>
-                Копирай
+                Copy
               </Link>
             </DetailCard>
           </div>
@@ -164,7 +164,7 @@ export default async function IntakeDetailPage({
           {/* Client detail cards */}
           <div className="grid gap-5">
             {(intake.customerVisitCount ?? 1) > 1 ? (
-              <DetailCard title="Предишни приемания">
+              <DetailCard title="Previous intakes">
                 {intake.previousIntakes.map((item) => (
                   <Link
                     key={item.id}
@@ -175,7 +175,7 @@ export default async function IntakeDetailPage({
                       <span className="font-semibold">{item.intakeNumber}</span>
                       {item.intakeType === "sale" ? (
                         <span className="rounded-md bg-[#edf2f9] px-1.5 py-0.5 text-xs font-medium text-[#2b4a7a]">
-                          Продажба
+                          Sale
                         </span>
                       ) : null}
                     </div>
@@ -185,7 +185,7 @@ export default async function IntakeDetailPage({
               </DetailCard>
             ) : null}
 
-            <DetailCard title="Данни за приема">
+            <DetailCard title="Intake details">
               <EditIntakeForm
                 intakeId={intake.id}
                 intakeType={intake.intakeType}
@@ -198,8 +198,8 @@ export default async function IntakeDetailPage({
               />
             </DetailCard>
 
-            <DetailCard title="Снимки">
-              <Suspense fallback={<p className="text-sm text-muted">Зареждане…</p>}>
+            <DetailCard title="Photos">
+              <Suspense fallback={<p className="text-sm text-muted">Loading…</p>}>
                 <PhotosLoader intakeId={intake.id} />
               </Suspense>
             </DetailCard>

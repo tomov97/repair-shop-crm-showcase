@@ -20,7 +20,7 @@ export function ReprintButton({
       <input type="hidden" name="returnTo" value={returnTo} />
       <button
         type="submit"
-        title={state.message ?? "Печат"}
+        title={state.message ?? "Print"}
         className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#23443f]/12 text-[#23443f] transition hover:bg-[#23443f]/20 active:scale-95"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

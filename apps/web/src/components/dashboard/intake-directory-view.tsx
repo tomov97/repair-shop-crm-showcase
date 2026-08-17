@@ -24,14 +24,14 @@ function formatDayHeading(dateKey: string) {
   const todayKey = toLocalDateKey(today.toISOString());
   const yesterdayKey = toLocalDateKey(yesterday.toISOString());
 
-  if (dateKey === todayKey) return "Днес";
-  if (dateKey === yesterdayKey) return "Вчера";
+  if (dateKey === todayKey) return "Today";
+  if (dateKey === yesterdayKey) return "Yesterday";
 
-  return new Intl.DateTimeFormat("bg-BG", {
+  return new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
     month: "long",
     year: "numeric",
-  }).format(d).replace(/\s*г\.$/, "");
+  }).format(d);
 }
 
 function formatCardDate(value: string) {
@@ -63,7 +63,7 @@ function SortControls({
               : "text-[#23443f]/70 hover:bg-[#f4f1e5]"
           }`}
         >
-          {option === "newest" ? "Най-нови" : "Най-стари"}
+          {option === "newest" ? "Newest" : "Oldest"}
         </button>
       ))}
     </div>
@@ -88,7 +88,7 @@ function DateFilter({
   return (
     <div className="flex flex-wrap items-center gap-2">
       <div className="flex items-center gap-1.5">
-        <label className="text-xs text-[#60726d] font-medium whitespace-nowrap">От:</label>
+        <label className="text-xs text-[#60726d] font-medium whitespace-nowrap">From:</label>
         <input
           type="date"
           value={dateFrom}
@@ -97,7 +97,7 @@ function DateFilter({
         />
       </div>
       <div className="flex items-center gap-1.5">
-        <label className="text-xs text-[#60726d] font-medium whitespace-nowrap">До:</label>
+        <label className="text-xs text-[#60726d] font-medium whitespace-nowrap">To:</label>
         <input
           type="date"
           value={dateTo}
@@ -111,7 +111,7 @@ function DateFilter({
           onClick={onClear}
           className="rounded-xl border border-[#e8e4d4] bg-white px-3 py-1.5 text-sm text-[#922b21] transition hover:bg-[#fdf0ef]"
         >
-          Изчисти
+          Clear
         </button>
       ) : null}
     </div>
@@ -148,7 +148,7 @@ const IntakeCard = memo(function IntakeCard({
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1.5">
               <p className="text-lg font-semibold leading-snug text-[#23443f]">{intake.customerName}</p>
-              {intake.isArchived ? <StatusPill label="Архивиран" archived /> : null}
+              {intake.isArchived ? <StatusPill label="Archived" archived /> : null}
             </div>
             <p className="mt-0.5 text-sm font-medium text-[#7b6530]">{intake.brand} {intake.model}</p>
           </div>
@@ -173,7 +173,7 @@ const IntakeCard = memo(function IntakeCard({
             <p className="text-sm text-[#23443f]/50">{formatCardDate(displayDateLabel)}</p>
             {(intake.customerVisitCount ?? 1) > 1 ? (
               <span className="inline-flex rounded-full border border-[#e0d1a7] bg-[#fbf3de] px-2 py-[3px] text-[11px] font-medium leading-none text-[#7b6530]">
-                Повторен
+                Returning
               </span>
             ) : null}
           </div>
@@ -186,7 +186,7 @@ const IntakeCard = memo(function IntakeCard({
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
             <p className="text-lg font-semibold text-[#23443f]">{intake.customerName}</p>
-            {intake.isArchived ? <StatusPill label="Архивиран" archived /> : null}
+            {intake.isArchived ? <StatusPill label="Archived" archived /> : null}
           </div>
           <p className="mt-0.5 text-sm font-medium text-[#7b6530]">{intake.brand} {intake.model}</p>
           <p className="mt-0.5 text-sm text-[#23443f]/50">{formatCardDate(displayDateLabel)}</p>
@@ -198,7 +198,7 @@ const IntakeCard = memo(function IntakeCard({
         <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
           {(intake.customerVisitCount ?? 1) > 1 ? (
             <span className="inline-flex rounded-full border border-[#e0d1a7] bg-[#fbf3de] px-2.5 py-1 text-xs font-medium leading-none text-[#7b6530]">
-              Повторен
+              Returning
             </span>
           ) : null}
           <PricePopout intakeId={intake.id} initialValue={intake.chargedAmountValue ?? ""} />
@@ -287,7 +287,7 @@ export function IntakeDirectoryView({
       {/* List */}
       {filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted">
-          {dateFrom || dateTo ? "Няма приемания за избрания период." : emptyMessage}
+          {dateFrom || dateTo ? "No intakes in the selected period." : emptyMessage}
         </div>
       ) : (
         <div className="space-y-6">

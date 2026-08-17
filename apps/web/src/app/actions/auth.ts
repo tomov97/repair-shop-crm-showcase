@@ -14,13 +14,13 @@ export type AuthActionState = {
 };
 
 const signInSchema = z.object({
-  email: z.email("Въведи валиден имейл адрес.").trim(),
-  password: z.string().min(8, "Паролата трябва да е поне 8 символа."),
+  email: z.email("Enter a valid email address.").trim(),
+  password: z.string().min(8, "Password must be at least 8 characters."),
   redirectTo: z.string().trim().optional(),
 });
 
 const bootstrapSchema = signInSchema.extend({
-  confirmPassword: z.string().min(8, "Повтори паролата."),
+  confirmPassword: z.string().min(8, "Repeat the password."),
 });
 
 export async function signInAction(
@@ -31,7 +31,7 @@ export async function signInAction(
 
   if (!checkRateLimit(`login:${rawEmail}`, 10, 15 * 60 * 1000)) {
     return {
-      message: "Твърде много опити за вход. Опитай отново след 15 минути.",
+      message: "Too many sign-in attempts. Try again in 15 minutes.",
       email: rawEmail,
     };
   }
@@ -57,7 +57,7 @@ export async function signInAction(
 
   if (error) {
     return {
-      message: "Имейлът или паролата не съвпадат.",
+      message: "Email or password is incorrect.",
       email: validatedFields.data.email,
     };
   }
@@ -91,7 +91,7 @@ export async function bootstrapOwnerAction(
 
   if (validatedFields.data.password !== validatedFields.data.confirmPassword) {
     return {
-      message: "Двете пароли трябва да съвпадат.",
+      message: "The two passwords must match.",
       email: validatedFields.data.email,
     };
   }
@@ -100,7 +100,7 @@ export async function bootstrapOwnerAction(
 
   if (setupStatus.hasUsers) {
     return {
-      message: "Първоначалният достъп вече е създаден. Използвай вход.",
+      message: "The first account already exists. Use sign in.",
       email: validatedFields.data.email,
     };
   }
@@ -114,7 +114,7 @@ export async function bootstrapOwnerAction(
 
   if (createUserError) {
     return {
-      message: "Не успяхме да създадем първия потребител.",
+      message: "Could not create the first user.",
       email: validatedFields.data.email,
     };
   }
@@ -127,7 +127,7 @@ export async function bootstrapOwnerAction(
 
   if (signInError) {
     return {
-      message: "Потребителят е създаден, но автоматичният вход не успя.",
+      message: "The user was created but automatic sign-in failed.",
       email: validatedFields.data.email,
     };
   }

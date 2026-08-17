@@ -3,7 +3,7 @@ import { getServerEnv } from "@/lib/env";
 import { extractPhoneDigits } from "@/lib/phone";
 
 export function normalizePersonName(value: string) {
-  return value.trim().replace(/\s+/g, " ").toLocaleLowerCase("bg-BG");
+  return value.trim().replace(/\s+/g, " ").toLocaleLowerCase("en-GB");
 }
 
 export function normalizePhoneNumber(value: string) {
@@ -55,10 +55,10 @@ const SOFIA_TZ = "Europe/Sofia";
 
 export function formatDate(value: string | null) {
   if (!value) {
-    return "Няма дата";
+    return "No date";
   }
 
-  return new Intl.DateTimeFormat("bg-BG", {
+  return new Intl.DateTimeFormat("en-GB", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -68,17 +68,17 @@ export function formatDate(value: string | null) {
 
 export function formatDateTime(value: string | null) {
   if (!value) {
-    return "Няма дата";
+    return "No date";
   }
 
   const d = new Date(value);
-  const date = new Intl.DateTimeFormat("bg-BG", {
+  const date = new Intl.DateTimeFormat("en-GB", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
     timeZone: SOFIA_TZ,
   }).format(d).replace(/\//g, ".");
-  const time = new Intl.DateTimeFormat("bg-BG", {
+  const time = new Intl.DateTimeFormat("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
     timeZone: SOFIA_TZ,
@@ -88,12 +88,12 @@ export function formatDateTime(value: string | null) {
 
 export function formatMoney(value: number | string | null) {
   if (value === null || value === "") {
-    return "Не е въведена";
+    return "Not set";
   }
 
   const amount = typeof value === "number" ? value : Number(value);
 
-  return new Intl.NumberFormat("bg-BG", {
+  return new Intl.NumberFormat("en-GB", {
     style: "currency",
     currency: "EUR",
     minimumFractionDigits: 2,

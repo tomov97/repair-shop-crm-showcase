@@ -15,7 +15,7 @@ export function SetupForm({ redirectTo }: { redirectTo: string }) {
 
       <div className="space-y-2">
         <label htmlFor="email" className="text-sm font-medium text-foreground">
-          Имейл за вход
+          Sign-in email
         </label>
         <input
           id="email"
@@ -30,7 +30,7 @@ export function SetupForm({ redirectTo }: { redirectTo: string }) {
 
       <div className="space-y-2">
         <label htmlFor="password" className="text-sm font-medium text-foreground">
-          Парола
+          Password
         </label>
         <input
           id="password"
@@ -39,13 +39,13 @@ export function SetupForm({ redirectTo }: { redirectTo: string }) {
           required
           minLength={8}
           className="min-h-12 w-full rounded-2xl border border-border bg-white px-4 py-3 outline-none transition focus:border-surface-strong"
-          placeholder="Поне 8 символа"
+          placeholder="At least 8 characters"
         />
       </div>
 
       <div className="space-y-2">
         <label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
-          Повтори паролата
+          Repeat password
         </label>
         <input
           id="confirmPassword"
@@ -54,7 +54,7 @@ export function SetupForm({ redirectTo }: { redirectTo: string }) {
           required
           minLength={8}
           className="min-h-12 w-full rounded-2xl border border-border bg-white px-4 py-3 outline-none transition focus:border-surface-strong"
-          placeholder="Повтори паролата"
+          placeholder="Repeat password"
         />
       </div>
 
@@ -64,7 +64,7 @@ export function SetupForm({ redirectTo }: { redirectTo: string }) {
         </p>
       ) : null}
 
-      <SubmitButton label="Създай първи достъп" pendingLabel="Създаване..." />
+      <SubmitButton label="Create first account" pendingLabel="Creating..." />
     </form>
   );
 }

@@ -1,0 +1,263 @@
+/**
+ * Bulgarian -> English UI string map for the public demo build.
+ *
+ * Keys are the exact source substrings (escapes included) as they appear in
+ * apps/web/src. Applied longest-first by scripts/translate-demo.mjs so that
+ * short strings never corrupt longer ones that contain them.
+ */
+export const TRANSLATIONS = {
+  // Navigation / shell
+  "Активни": "Active",
+  "Архив": "Archive",
+  "Продажби": "Sales",
+  "За печат": "Print queue",
+  "Изход": "Sign out",
+  "Меню": "Menu",
+  "Търсене": "Search",
+  "Няма сесия": "No session",
+  "Кафемашини": "Coffee Machine Service",
+  "Сервиз CRM": "Service CRM",
+  "Нов прием": "New intake",
+  "Затвори": "Close",
+  "Изчисти": "Clear",
+
+  // Metadata
+  "CRM за сервиз на кафемашини": "Coffee Machine Repair CRM",
+  "Вътрешна CRM система за приемане, търсене и архивиране на сервизни поръчки.":
+    "Internal CRM for intake, search and archiving of repair jobs.",
+  "Вътрешна CRM система за приемане и проследяване на сервизни поръчки.":
+    "Internal CRM for intake and tracking of repair jobs.",
+
+  // Auth
+  "Вход": "Sign in",
+  "Влез": "Sign in",
+  "Влизане...": "Signing in...",
+  "Имейл": "Email",
+  "Имейл за вход": "Sign-in email",
+  "Парола": "Password",
+  "Повтори паролата": "Repeat password",
+  "Повтори паролата.": "Repeat the password.",
+  "Поне 8 символа": "At least 8 characters",
+  "Паролата трябва да е поне 8 символа.": "Password must be at least 8 characters.",
+  "Двете пароли трябва да съвпадат.": "The two passwords must match.",
+  "Имейлът или паролата не съвпадат.": "Email or password is incorrect.",
+  "Въведи валиден имейл адрес.": "Enter a valid email address.",
+  "Твърде много опити за вход. Опитай отново след 15 минути.":
+    "Too many sign-in attempts. Try again in 15 minutes.",
+  "Влез с имейл и парола, за да отвориш приемащата форма и останалите записи.":
+    "Sign in with your email and password to open the intake form and the records.",
+  "Първоначална настройка": "Initial setup",
+  "първоначална настройка": "initial setup",
+  "Създай първи достъп": "Create first account",
+  "Създай първия достъп за сервиза": "Create the first account for the workshop",
+  "Създаване...": "Creating...",
+  "Към вход": "To sign in",
+  "Първоначалният достъп вече е създаден. Използвай вход.":
+    "The first account already exists. Use sign in.",
+  "Потребителят е създаден, но автоматичният вход не успя.":
+    "The user was created but automatic sign-in failed.",
+  "Не успяхме да създадем първия потребител.": "Could not create the first user.",
+  "Това се използва само веднъж. След създаването на първия потребител достъпът минава през\n          нормалния вход.":
+    "This is used only once. After the first user is created, access goes through\n          the normal sign-in.",
+
+  // Intake form
+  "Данни за приема": "Intake details",
+  "Име на клиент": "Customer name",
+  "Телефон": "Phone",
+  "Марка": "Brand",
+  "Модел": "Model",
+  "Описание на проблема": "Problem description",
+  "Бележка": "Note",
+  "Брой кафета": "Coffee count",
+  "Брой кафета:": "Coffee count:",
+  "Цена (€)": "Price (€)",
+  "Сума (€)": "Amount (€)",
+  "Сума за плащане": "Amount charged",
+  "(по желание)": "(optional)",
+  "Например Мария Иванова": "e.g. Maria Jansen",
+  "Например 120": "e.g. 120",
+  "Напр. 120": "e.g. 120",
+  "Напр. 5000": "e.g. 5000",
+  "Не пуска вода, тече отдолу, прави шум...":
+    "No water flow, leaking underneath, making noise...",
+  "Допълнителна информация...": "Additional information...",
+  "Въведи брой кафета": "Enter coffee count",
+  "Въведи цена": "Enter price",
+  "Запази": "Save",
+  "Запази приемането": "Save intake",
+  "Запази продажбата": "Save sale",
+  "Запази промените": "Save changes",
+  "Запази сумата": "Save amount",
+  "Обнови сумата": "Update amount",
+  "Записана сума:": "Amount recorded:",
+  "Не е въведена": "Not set",
+  "Запазване...": "Saving...",
+  "Запазено.": "Saved.",
+  "+ цена": "+ price",
+  "+ кафета": "+ coffees",
+  "+ Нова продажба": "+ New sale",
+  "Копирай": "Copy",
+
+  // Validation
+  "Въведи име на клиент.": "Enter a customer name.",
+  "Въведи ime на клиент.": "Enter a customer name.",
+  "Въведи телефонен номер.": "Enter a phone number.",
+  "Въведи валиден телефонен номер (само цифри).": "Enter a valid phone number (digits only).",
+  "Избери валиден код.": "Select a valid country code.",
+  "Въведи марка.": "Enter a brand.",
+  "Въведи модел.": "Enter a model.",
+  "Опиши проблема.": "Describe the problem.",
+  "Въведи сума за плащане.": "Enter the amount charged.",
+  "Въведи валидна сума по-голяма от нула.": "Enter a valid amount greater than zero.",
+  "Въведи валидно цяло число.": "Enter a valid whole number.",
+  "Въведи брой кафета.": "Enter the coffee count.",
+  "Въведете поне 2 символа за търсене.": "Enter at least 2 characters to search.",
+  "Невалидни данни.": "Invalid data.",
+
+  // Customer matching
+  "Намерихме подобен клиент. Потвърди дали да свържем приемането или да създадем нов запис.":
+    "We found a similar customer. Confirm whether to link this intake or create a new record.",
+  "Свържи с този клиент": "Link to this customer",
+  "Създай нов клиент": "Create new customer",
+  "Съвпада телефонът": "Phone matches",
+  "Неизвестен клиент": "Unknown customer",
+  "Няма телефон": "No phone",
+  "Предишни приемания": "Previous intakes",
+  "Първо приемане": "First intake",
+  "Повторен": "Returning",
+  "${intake.customerVisitCount} приемания": "${intake.customerVisitCount} intakes",
+
+  // Statuses
+  "Активен": "Active",
+  "Архивиран": "Archived",
+  "Сервиз": "Service",
+  "Продажба": "Sale",
+  "Чака печат": "Queued",
+  "Печата се": "Printing",
+  "Отпечатан": "Printed",
+  "Грешка при печат": "Print error",
+  "Няма задача": "No job",
+  "Статус и действия": "Status and actions",
+
+  // Archiving
+  "Архивирай": "Archive",
+  "Архивиране...": "Archiving...",
+  "Сигурни ли сте, че искате да архивирате това приемане?":
+    "Are you sure you want to archive this intake?",
+  "Продажбите не могат да се архивират.": "Sales cannot be archived.",
+  "Липсва приемане за архивиране.": "No intake to archive.",
+  "Не успяхме да архивираме приемането.": "Could not archive the intake.",
+
+  // Photos
+  "Снимки": "Photos",
+  "Преди": "Before",
+  "След": "After",
+  "Няма снимки.": "No photos.",
+  "Снимай с камера": "Take a photo",
+  "Избери от галерията": "Choose from gallery",
+  "Изтрий": "Delete",
+  "Изтрий тази снимка?": "Delete this photo?",
+  "Качване…": "Uploading…",
+  "Компресиране…": "Compressing…",
+  "Грешка при качване.": "Upload failed.",
+  "Грешка при компресия.": "Compression failed.",
+  "Грешка при качване на снимката.": "Could not upload the photo.",
+  "Грешка при запис на снимката.": "Could not save the photo.",
+  "Грешка при изтриване на снимката.": "Could not delete the photo.",
+  "Снимката е прекалено голяма.": "The photo is too large.",
+  "Снимката не е намерена.": "Photo not found.",
+  "Невалиден тип снимка.": "Invalid photo type.",
+  "Форматът не се поддържа.": "Format not supported.",
+  "Липсва ID на снимката.": "Missing photo ID.",
+  "Липсва файл.": "Missing file.",
+
+  // Printing
+  "Печат": "Print",
+  "Отпечатани": "Printed",
+  "Грешки": "Errors",
+  "Общо задачи": "Total jobs",
+  "Активни задачи": "Active jobs",
+  "Чакат или печатат": "Queued or printing",
+  "Имат нужда от повторен опит": "Need a retry",
+  "Последни успешни задачи": "Recent successful jobs",
+  "Последните 30 печатни задачи": "Last 30 print jobs",
+  "Все още няма задачи за печат.": "No print jobs yet.",
+  "Все още няма успешен печат": "No successful print yet",
+  "Липсва приемане за печат.": "No intake to print.",
+  "Не успяхме да добавим задача за печат.": "Could not queue the print job.",
+  "Няма номер": "No number",
+
+  // Search
+  "Търсене по клиент, машина, телефон…": "Search by customer, machine, phone…",
+  "Търсене…": "Searching…",
+  "Ново търсене…": "New search…",
+  "Резултати от търсене": "Search results",
+  "Виж всички резултати →": "See all results →",
+  "Няма намерени резултати": "No results found",
+  "Няма резултати за „${trimmed}\\\".": "No results for \\\"${trimmed}\\\".",
+  "Отвори приема": "Open intake",
+
+  // Empty states
+  "Няма текущи приемания.": "No active intakes.",
+  "Все още няма архивирани приемания.": "No archived intakes yet.",
+  "Все още няма записани продажби.": "No sales recorded yet.",
+  "Няма приемания за избрания период.": "No intakes in the selected period.",
+  "Активни записи": "Active records",
+  "Записът не е намерен": "Record not found",
+  "Няма такова приемане": "No such intake",
+  "Провери дали линкът е правилен или отвори таблото, за да намериш машината по списъка.":
+    "Check that the link is correct, or open the dashboard to find the machine in the list.",
+  "Към таблото": "To dashboard",
+  "Зареждане…": "Loading…",
+
+  // Trend card
+  "Динамика на приеманията": "Intake trend",
+  "Ден": "Day",
+  "Седмица": "Week",
+  "Месец": "Month",
+  "Година": "Year",
+  "Днес": "Today",
+  "Вчера": "Yesterday",
+  "Създадено": "Created",
+  "Няма дата": "No date",
+  "От:": "From:",
+  "До:": "To:",
+  "Най-нови": "Newest",
+  "Най-стари": "Oldest",
+  "Предишна страница": "Previous page",
+  "Следваща страница": "Next page",
+  "Последните 7 дни": "Last 7 days",
+  "Последните 8 седмици": "Last 8 weeks",
+  "Последните 6 месеца": "Last 6 months",
+  "Последните 5 години": "Last 5 years",
+  "Проследяване на дневния ритъм на новите приемания.":
+    "Tracks the daily rhythm of new intakes.",
+  "Добър изглед за натоварването по седмици.": "A good view of weekly workload.",
+  "Показва дали потокът расте или спада по месеци.":
+    "Shows whether volume is growing or shrinking month over month.",
+  "Полезно за обща сезонност и дълъг хоризонт.":
+    "Useful for overall seasonality and the long horizon.",
+  "${label}<br/>${value} приема": "${label}<br/>${value} intakes",
+
+  // Server errors
+  "Липсва валидно приемане.": "No valid intake.",
+  "Липсва приемане.": "No intake.",
+  "Липсва приемане за сумата.": "No intake for the amount.",
+  "Липсва токен за изпращане.": "Missing submission token.",
+  "Приемането не е намерено.": "Intake not found.",
+  "Не успяхме да запазим приемането.": "Could not save the intake.",
+  "Не успяхме да запазим сумата.": "Could not save the amount.",
+  "Не успяхме да запазим броя кафета.": "Could not save the coffee count.",
+  "Не успяхме да заредим данните от Supabase.": "Could not load data from Supabase.",
+  "Не успяхме да намерим клиента.": "Could not find the customer.",
+  "Не успяхме да намерим приемането.": "Could not find the intake.",
+  "Не успяхме да обновим клиента.": "Could not update the customer.",
+  "Не успяхме да обновим приемането.": "Could not update the intake.",
+  "Не успяхме да определим клиент за приемането.": "Could not resolve a customer for the intake.",
+  "Не успяхме да проверим за дублирано изпращане.": "Could not check for a duplicate submission.",
+  "Не успяхме да проверим съществуващите клиенти.": "Could not check existing customers.",
+  "Не успяхме да създадем клиент.": "Could not create the customer.",
+  "Грешка.": "Error.",
+  "Връзката към базата е готова частично, но схемата още не е приложена или не е обновена.":
+    "The database connection is partially ready, but the schema has not been applied or updated yet.",
+};

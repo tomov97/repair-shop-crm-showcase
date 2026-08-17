@@ -125,8 +125,8 @@ async function searchIntakes(q: string): Promise<IntakeDirectoryItem[]> {
       id: intake.id,
       intakeNumber: intake.intake_number,
       intakeType: intake.intake_type ?? "service",
-      customerName: customer?.full_name ?? "Неизвестен клиент",
-      customerPhone: customer?.display_phone ?? "Няма телефон",
+      customerName: customer?.full_name ?? "Unknown customer",
+      customerPhone: customer?.display_phone ?? "No phone",
       brand: intake.brand,
       model: intake.model,
       createdAt: intake.created_at,
@@ -160,7 +160,7 @@ export default async function SearchPage({
         <article className="rounded-[1.75rem] bg-surface-strong px-5 py-4 text-white shadow-[0_24px_80px_rgba(35,68,63,0.16)] sm:px-6">
           <div className="flex flex-row items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-2xl font-semibold tracking-tight leading-tight">Резултати от търсене</h1>
+              <h1 className="text-2xl font-semibold tracking-tight leading-tight">Search results</h1>
             </div>
             <div className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold text-white/90 backdrop-blur-sm shrink-0">
               {items.length}
@@ -175,12 +175,12 @@ export default async function SearchPage({
       <section className="mt-6">
         {trimmed.length < 2 ? (
           <div className="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted">
-            Въведете поне 2 символа за търсене.
+            Enter at least 2 characters to search.
           </div>
         ) : (
           <IntakeDirectoryView
             items={items}
-            emptyMessage={`Няма резултати за „${trimmed}".`}
+            emptyMessage={`No results for "${trimmed}".`}
             returnTo={`/search?q=${encodeURIComponent(trimmed)}`}
           />
         )}

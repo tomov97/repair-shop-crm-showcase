@@ -34,13 +34,13 @@ export function AppShellClient({
       {/* Mobile header */}
       <div className="bg-surface-strong px-4 py-3 lg:hidden">
         <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-3">
-          <Image src={logo} alt="Кафемашини" className="h-8 w-auto object-contain" style={{ filter: "brightness(0) invert(1)" }} priority />
+          <Image src={logo} alt="Coffee Machine Service" className="h-8 w-auto object-contain" style={{ filter: "brightness(0) invert(1)" }} priority />
 
           <button
             type="button"
             onClick={() => { setMobileSearchOpen(true); setMobileMenuOpen(false); }}
             className="ml-auto inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/20 text-white transition active:scale-90 active:opacity-70"
-            aria-label="Търсене"
+            aria-label="Search"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" />
@@ -52,7 +52,7 @@ export function AppShellClient({
             type="button"
             onClick={() => setMobileMenuOpen((current) => !current)}
             className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/20 text-white transition active:scale-90 active:opacity-70"
-            aria-label="Меню"
+            aria-label="Menu"
           >
             {mobileMenuOpen ? (
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -91,10 +91,10 @@ export function AppShellClient({
               })}
             </nav>
             <div className="mt-3 border-t border-white/15 pt-3 pb-1 space-y-2">
-              <p className="truncate text-xs text-white/50">{userEmail ?? "Няма сесия"}</p>
+              <p className="truncate text-xs text-white/50">{userEmail ?? "No session"}</p>
               <form action={signOutAction}>
                 <button type="submit" className="text-sm font-semibold text-[#f28c84] transition hover:text-white">
-                  Изход
+                  Sign out
                 </button>
               </form>
             </div>
@@ -107,7 +107,7 @@ export function AppShellClient({
           className="hidden lg:sticky lg:top-6 lg:flex lg:h-[calc(100vh-3rem)] lg:w-[260px] lg:shrink-0 lg:flex-col rounded-[2rem] bg-surface-strong px-5 py-6 text-white shadow-[0_24px_80px_rgba(35,68,63,0.18)]"
         >
           <div className="px-4">
-            <Image src={logo} alt="Кафемашини" className="w-full object-contain" style={{ filter: "brightness(0) invert(1)" }} priority />
+            <Image src={logo} alt="Coffee Machine Service" className="w-full object-contain" style={{ filter: "brightness(0) invert(1)" }} priority />
           </div>
 
           <nav className="mt-8 grid gap-2">
@@ -150,13 +150,13 @@ export function AppShellClient({
           </div>
 
           <div className="mt-auto pt-6 space-y-3">
-            <p className="truncate text-center text-sm text-white/60">{userEmail ?? "Няма сесия"}</p>
+            <p className="truncate text-center text-sm text-white/60">{userEmail ?? "No session"}</p>
             <form action={signOutAction}>
               <button
                 type="submit"
                 className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-[#d78c83] bg-[#b24f42] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#9f4338]"
               >
-                Изход
+                Sign out
               </button>
             </form>
           </div>
@@ -167,7 +167,7 @@ export function AppShellClient({
 
       <Link
         href="/new-intake"
-        aria-label="Нов прием"
+        aria-label="New intake"
         className={`fixed right-4 bottom-4 z-20 inline-flex h-16 w-16 items-center justify-center rounded-full text-4xl leading-none text-white shadow-[0_8px_24px_rgba(35,68,63,0.35)] transition hover:scale-[1.03] active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#23443f] sm:right-6 sm:bottom-6 lg:right-8 lg:bottom-8 ${
           isNewIntakeActive ? "bg-[#1a3530]" : "bg-[#23443f]"
         }`}

@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "CRM за сервиз на кафемашини",
-    short_name: "Сервиз CRM",
-    description: "Вътрешна CRM система за приемане и проследяване на сервизни поръчки.",
+    name: "Coffee Machine Repair CRM",
+    short_name: "Service CRM",
+    description: "Internal CRM for intake and tracking of repair jobs.",
     start_url: "/",
     display: "standalone",
     background_color: "#eef4f0",

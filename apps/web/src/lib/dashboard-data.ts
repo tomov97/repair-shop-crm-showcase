@@ -75,15 +75,15 @@ export type PrintQueueItem = {
 function getPrintStatusLabel(status: string | null | undefined) {
   switch (status) {
     case "queued":
-      return "Чака печат";
+      return "Queued";
     case "printing":
-      return "Печата се";
+      return "Printing";
     case "printed":
-      return "Отпечатан";
+      return "Printed";
     case "failed":
-      return "Грешка при печат";
+      return "Print error";
     default:
-      return "Няма задача";
+      return "No job";
   }
 }
 
@@ -121,8 +121,8 @@ function addYears(date: Date, amount: number) {
 function formatWeekRange(start: Date) {
   const end = addDays(start, 6);
   const sameMonth = start.getMonth() === end.getMonth();
-  const dayFormatter = new Intl.DateTimeFormat("bg-BG", { day: "numeric" });
-  const monthFormatter = new Intl.DateTimeFormat("bg-BG", { month: "short" });
+  const dayFormatter = new Intl.DateTimeFormat("en-GB", { day: "numeric" });
+  const monthFormatter = new Intl.DateTimeFormat("en-GB", { month: "short" });
 
   if (sameMonth) {
     return `${dayFormatter.format(start)}-${dayFormatter.format(end)} ${monthFormatter.format(start)}`;
@@ -140,10 +140,10 @@ function buildTrendPoints(createdAtValues: string[]) {
   const monthlyStarts = Array.from({ length: 6 }, (_, index) => addMonths(startOfMonth(now), index - 5));
   const yearlyStarts = Array.from({ length: 5 }, (_, index) => addYears(startOfYear(now), index - 4));
 
-  const dayLabel = new Intl.DateTimeFormat("bg-BG", { weekday: "short" });
-  const dayShortLabel = new Intl.DateTimeFormat("bg-BG", { day: "numeric", month: "short" });
-  const monthLabel = new Intl.DateTimeFormat("bg-BG", { month: "long" });
-  const monthShortLabel = new Intl.DateTimeFormat("bg-BG", { month: "short" });
+  const dayLabel = new Intl.DateTimeFormat("en-GB", { weekday: "short" });
+  const dayShortLabel = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" });
+  const monthLabel = new Intl.DateTimeFormat("en-GB", { month: "long" });
+  const monthShortLabel = new Intl.DateTimeFormat("en-GB", { month: "short" });
 
   const countInRange = (
     starts: Date[],
@@ -161,8 +161,8 @@ function buildTrendPoints(createdAtValues: string[]) {
 
   return {
     daily: {
-      title: "Последните 7 дни",
-      description: "Проследяване на дневния ритъм на новите приемания.",
+      title: "Last 7 days",
+      description: "Tracks the daily rhythm of new intakes.",
       total: intakeDates.filter((date) => date >= dailyStarts[0]!).length,
       points: countInRange(dailyStarts, (start) => addDays(start, 1), (start) => ({
         label: dayShortLabel.format(start),
@@ -170,8 +170,8 @@ function buildTrendPoints(createdAtValues: string[]) {
       })),
     },
     weekly: {
-      title: "Последните 8 седмици",
-      description: "Добър изглед за натоварването по седмици.",
+      title: "Last 8 weeks",
+      description: "A good view of weekly workload.",
       total: intakeDates.filter((date) => date >= weeklyStarts[0]!).length,
       points: countInRange(weeklyStarts, (start) => addDays(start, 7), (start) => ({
         label: formatWeekRange(start),
@@ -179,8 +179,8 @@ function buildTrendPoints(createdAtValues: string[]) {
       })),
     },
     monthly: {
-      title: "Последните 6 месеца",
-      description: "Показва дали потокът расте или спада по месеци.",
+      title: "Last 6 months",
+      description: "Shows whether volume is growing or shrinking month over month.",
       total: intakeDates.filter((date) => date >= monthlyStarts[0]!).length,
       points: countInRange(monthlyStarts, (start) => addMonths(start, 1), (start) => ({
         label: `${monthLabel.format(start)} ${start.getFullYear()}`,
@@ -188,8 +188,8 @@ function buildTrendPoints(createdAtValues: string[]) {
       })),
     },
     yearly: {
-      title: "Последните 5 години",
-      description: "Полезно за обща сезонност и дълъг хоризонт.",
+      title: "Last 5 years",
+      description: "Useful for overall seasonality and the long horizon.",
       total: intakeDates.filter((date) => date >= yearlyStarts[0]!).length,
       points: countInRange(yearlyStarts, (start) => addYears(start, 1), (start) => ({
         label: `${start.getFullYear()}`,
@@ -261,8 +261,8 @@ export async function getIntakeDirectory(options: {
       id: row.id,
       intakeNumber: row.intake_number,
       intakeType: row.intake_type,
-      customerName: row.customer_full_name ?? "Неизвестен клиент",
-      customerPhone: row.customer_display_phone ?? "Няма телефон",
+      customerName: row.customer_full_name ?? "Unknown customer",
+      customerPhone: row.customer_display_phone ?? "No phone",
       brand: row.brand,
       model: row.model,
       createdAt: row.created_at,
@@ -334,9 +334,9 @@ export async function getPrintQueueData(limit = 30) {
   const items = jobs.map((job) => ({
     id: job.id,
     intakeId: job.intake_id,
-    intakeNumber: job.intakes?.intake_number ?? "Няма номер",
-    customerName: job.intakes?.customers?.full_name ?? "Неизвестен клиент",
-    customerPhone: job.intakes?.customers?.display_phone ?? "Няма телефон",
+    intakeNumber: job.intakes?.intake_number ?? "No number",
+    customerName: job.intakes?.customers?.full_name ?? "Unknown customer",
+    customerPhone: job.intakes?.customers?.display_phone ?? "No phone",
     status: getPrintStatusLabel(job.status),
     createdAtLabel: formatDateTime(job.created_at),
     updatedAtLabel: formatDateTime(job.updated_at),

@@ -25,32 +25,32 @@ export async function POST(
     .maybeSingle();
 
   if (!intake) {
-    return NextResponse.json({ error: "Приемането не е намерено." }, { status: 404 });
+    return NextResponse.json({ error: "Intake not found." }, { status: 404 });
   }
 
   let formData: FormData;
   try {
     formData = await request.formData();
   } catch {
-    return NextResponse.json({ error: "Невалидни данни." }, { status: 400 });
+    return NextResponse.json({ error: "Invalid data." }, { status: 400 });
   }
 
   const photoType = formData.get("photo_type");
   if (photoType !== "before" && photoType !== "after") {
-    return NextResponse.json({ error: "Невалиден тип снимка." }, { status: 400 });
+    return NextResponse.json({ error: "Invalid photo type." }, { status: 400 });
   }
 
   const file = formData.get("file");
   if (!(file instanceof File)) {
-    return NextResponse.json({ error: "Липсва файл." }, { status: 400 });
+    return NextResponse.json({ error: "Missing file." }, { status: 400 });
   }
 
   if (!ALLOWED_TYPES.has(file.type)) {
-    return NextResponse.json({ error: "Форматът не се поддържа." }, { status: 400 });
+    return NextResponse.json({ error: "Format not supported." }, { status: 400 });
   }
 
   if (file.size > MAX_BYTES) {
-    return NextResponse.json({ error: "Снимката е прекалено голяма." }, { status: 400 });
+    return NextResponse.json({ error: "The photo is too large." }, { status: 400 });
   }
 
   const positionRaw = formData.get("position");
@@ -98,11 +98,11 @@ export async function DELETE(
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Невалидни данни." }, { status: 400 });
+    return NextResponse.json({ error: "Invalid data." }, { status: 400 });
   }
 
   if (!body.photoId) {
-    return NextResponse.json({ error: "Липсва ID на снимката." }, { status: 400 });
+    return NextResponse.json({ error: "Missing photo ID." }, { status: 400 });
   }
 
   const result = await deleteIntakePhoto({ actorId: user.id, photoId: body.photoId });

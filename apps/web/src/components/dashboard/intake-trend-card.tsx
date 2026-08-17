@@ -8,10 +8,10 @@ import type { IntakeTrendRange, IntakeTrendSeries } from "@/lib/dashboard-data";
 const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
 
 const rangeLabels: Array<{ key: IntakeTrendRange; label: string }> = [
-  { key: "daily", label: "Ден" },
-  { key: "weekly", label: "Седмица" },
-  { key: "monthly", label: "Месец" },
-  { key: "yearly", label: "Година" },
+  { key: "daily", label: "Day" },
+  { key: "weekly", label: "Week" },
+  { key: "monthly", label: "Month" },
+  { key: "yearly", label: "Year" },
 ];
 
 export function IntakeTrendCard({ series }: { series: IntakeTrendSeries }) {
@@ -55,7 +55,7 @@ export function IntakeTrendCard({ series }: { series: IntakeTrendSeries }) {
           const index = typeof point?.dataIndex === "number" ? point.dataIndex : 0;
           const label = detailedLabels[index] ?? "";
           const value = typeof point?.value === "number" ? point.value : Number(point?.value ?? 0);
-          return `${label}<br/>${value} приема`;
+          return `${label}<br/>${value} intakes`;
         },
       },
       xAxis: {
@@ -137,12 +137,12 @@ export function IntakeTrendCard({ series }: { series: IntakeTrendSeries }) {
     <article className="rounded-[1.75rem] border border-border bg-white/88 px-4 py-4 shadow-[0_18px_48px_rgba(20,30,28,0.06)] backdrop-blur sm:px-5">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h2 className="text-xl font-semibold tracking-tight">Динамика на приеманията</h2>
+          <h2 className="text-xl font-semibold tracking-tight">Intake trend</h2>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex min-h-9 items-center rounded-xl border border-[#2c4d47] bg-[#183430] px-3 text-sm font-semibold text-[#d9efe8]">
-            Общо: {activeSeries.total}
+            Total: {activeSeries.total}
           </div>
           {rangeLabels.map((range) => {
             const isActive = range.key === activeRange;

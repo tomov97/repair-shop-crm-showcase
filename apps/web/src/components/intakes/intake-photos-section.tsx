@@ -70,7 +70,7 @@ function Lightbox({ photo, onClose }: { photo: { url: string; label: string } | 
         className="max-h-[92vh] max-w-full object-contain"
         onClick={(e) => e.stopPropagation()}
       />
-      <p className="fixed bottom-4 left-0 right-0 text-center text-sm text-white/70">{photo.label} — натисни навсякъде за затваряне</p>
+      <p className="fixed bottom-4 left-0 right-0 text-center text-sm text-white/70">{photo.label} — tap anywhere to close</p>
     </div>,
     document.body,
   );
@@ -108,7 +108,7 @@ function PhotoGrid({
       compressed = await compressPhoto(file);
     } catch {
       setUploading((prev) =>
-        prev.map((u) => u.id === tempId ? { ...u, progress: "error", errorMessage: "Грешка при компресия." } : u)
+        prev.map((u) => u.id === tempId ? { ...u, progress: "error", errorMessage: "Compression failed." } : u)
       );
       return;
     }
@@ -132,7 +132,7 @@ function PhotoGrid({
       const res = await fetch(`/api/intakes/${intakeId}/photos`, { method: "POST", body: fd });
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
-        throw new Error((json as { error?: string }).error ?? "Грешка при качване.");
+        throw new Error((json as { error?: string }).error ?? "Upload failed.");
       }
       const photo = await res.json() as PhotoView;
       setUploading((prev) => prev.filter((u) => u.id !== tempId));
@@ -141,7 +141,7 @@ function PhotoGrid({
     } catch (err) {
       setUploading((prev) =>
         prev.map((u) => u.id === tempId
-          ? { ...u, progress: "error", errorMessage: err instanceof Error ? err.message : "Грешка." }
+          ? { ...u, progress: "error", errorMessage: err instanceof Error ? err.message : "Error." }
           : u)
       );
     }
@@ -154,7 +154,7 @@ function PhotoGrid({
   }, [photos.length, uploading, uploadFile]);
 
   const handleDelete = useCallback(async (photoId: string) => {
-    if (!confirm("Изтрий тази снимка?")) return;
+    if (!confirm("Delete this photo?")) return;
     setDeletingId(photoId);
     try {
       const res = await fetch(`/api/intakes/${intakeId}/photos`, {
@@ -175,7 +175,7 @@ function PhotoGrid({
         <div className="flex gap-2">
           <button
             type="button"
-            title="Снимай с камера"
+            title="Take a photo"
             onClick={() => cameraRef.current?.click()}
             className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[#23443f]/10 text-[#23443f] transition hover:bg-[#23443f]/20 active:scale-95"
           >
@@ -183,7 +183,7 @@ function PhotoGrid({
           </button>
           <button
             type="button"
-            title="Избери от галерията"
+            title="Choose from gallery"
             onClick={() => galleryRef.current?.click()}
             className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[#23443f]/10 text-[#23443f] transition hover:bg-[#23443f]/20 active:scale-95"
           >
@@ -212,7 +212,7 @@ function PhotoGrid({
       />
 
       {photos.length === 0 && uploading.length === 0 ? (
-        <p className="text-sm text-muted">Няма снимки.</p>
+        <p className="text-sm text-muted">No photos.</p>
       ) : (
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
           {photos.map((photo) => (
@@ -229,7 +229,7 @@ function PhotoGrid({
                 disabled={deletingId === photo.id}
                 onClick={() => handleDelete(photo.id)}
                 className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-lg bg-black/55 text-white transition hover:bg-red-600/80 active:scale-95 disabled:opacity-50"
-                title="Изтрий"
+                title="Delete"
               >
                 {deletingId === photo.id ? <Spinner /> : <TrashIcon />}
               </button>
@@ -247,7 +247,7 @@ function PhotoGrid({
                   <>
                     <Spinner />
                     <p className="text-[11px] text-foreground/70">
-                      {u.progress === "compressing" ? "Компресиране…" : "Качване…"}
+                      {u.progress === "compressing" ? "Compressing…" : "Uploading…"}
                     </p>
                   </>
                 )}
@@ -287,7 +287,7 @@ export function IntakePhotosSection({
       <PhotoGrid
         intakeId={intakeId}
         photoType="before"
-        label="Преди"
+        label="Before"
         photos={before}
         onUploaded={handleUploaded("before")}
         onDeleted={handleDeleted("before")}
@@ -296,7 +296,7 @@ export function IntakePhotosSection({
       <PhotoGrid
         intakeId={intakeId}
         photoType="after"
-        label="След"
+        label="After"
         photos={after}
         onUploaded={handleUploaded("after")}
         onDeleted={handleDeleted("after")}

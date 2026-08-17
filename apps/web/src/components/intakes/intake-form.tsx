@@ -62,7 +62,7 @@ export function IntakeForm({
               : "text-foreground/60 hover:text-foreground"
           }`}
         >
-          Сервиз
+          Service
         </button>
         <button
           type="button"
@@ -73,14 +73,14 @@ export function IntakeForm({
               : "text-foreground/60 hover:text-foreground"
           }`}
         >
-          Продажби
+          Sales
         </button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">
           <label htmlFor="fullName" className="text-sm font-medium text-foreground">
-            Име на клиент
+            Customer name
           </label>
           <input
             id="fullName"
@@ -88,14 +88,14 @@ export function IntakeForm({
             required
             defaultValue={state.values?.fullName ?? initialFullName ?? ""}
             className="min-h-12 w-full rounded-2xl border border-border bg-white px-4 py-3 outline-none transition focus:border-surface-strong"
-            placeholder="Например Мария Иванова"
+            placeholder="e.g. Maria Jansen"
           />
           <FieldError message={state.fieldErrors?.fullName} />
         </div>
 
         <div className="space-y-2 sm:col-span-2">
           <label htmlFor="phoneNumber" className="text-sm font-medium text-foreground">
-            Телефон
+            Phone
           </label>
           <div className="grid grid-cols-[116px_minmax(0,1fr)] gap-2">
             <select
@@ -125,7 +125,7 @@ export function IntakeForm({
 
         <div className="space-y-2">
           <label htmlFor="brand" className="text-sm font-medium text-foreground">
-            Марка
+            Brand
           </label>
           <input
             id="brand"
@@ -140,7 +140,7 @@ export function IntakeForm({
 
         <div className="space-y-2">
           <label htmlFor="model" className="text-sm font-medium text-foreground">
-            Модел
+            Model
           </label>
           <input
             id="model"
@@ -157,7 +157,7 @@ export function IntakeForm({
         {!isSale ? (
           <div className="space-y-2 sm:col-span-2">
             <label htmlFor="issueDescription" className="text-sm font-medium text-foreground">
-              Описание на проблема
+              Problem description
             </label>
             <textarea
               id="issueDescription"
@@ -166,14 +166,14 @@ export function IntakeForm({
               rows={4}
               defaultValue={state.values?.issueDescription ?? ""}
               className="w-full rounded-2xl border border-border bg-white px-4 py-3 outline-none transition focus:border-surface-strong"
-              placeholder="Не пуска вода, тече отдолу, прави шум..."
+              placeholder="No water flow, leaking underneath, making noise..."
             />
             <FieldError message={state.fieldErrors?.issueDescription} />
           </div>
         ) : (
           <div className="space-y-2 sm:col-span-2">
             <label htmlFor="issueDescription" className="text-sm font-medium text-foreground">
-              Бележка <span className="text-muted font-normal">(по желание)</span>
+              Note <span className="text-muted font-normal">(optional)</span>
             </label>
             <textarea
               id="issueDescription"
@@ -181,7 +181,7 @@ export function IntakeForm({
               rows={3}
               defaultValue={state.values?.issueDescription ?? ""}
               className="w-full rounded-2xl border border-border bg-white px-4 py-3 outline-none transition focus:border-surface-strong"
-              placeholder="Допълнителна информация..."
+              placeholder="Additional information..."
             />
           </div>
         )}
@@ -203,8 +203,8 @@ export function IntakeForm({
                   <p className="mt-1 text-sm text-muted">{match.reason}</p>
                   <div className="mt-3">
                     <SubmitButton
-                      label="Свържи с този клиент"
-                      pendingLabel="Запазване..."
+                      label="Link to this customer"
+                      pendingLabel="Saving..."
                       name="customerResolution"
                       value={`link:${match.id}`}
                       variant="secondary"
@@ -214,8 +214,8 @@ export function IntakeForm({
               ))}
 
               <SubmitButton
-                label="Създай нов клиент"
-                pendingLabel="Запазване..."
+                label="Create new customer"
+                pendingLabel="Saving..."
                 name="customerResolution"
                 value="create_new"
                 variant="secondary"
@@ -229,13 +229,13 @@ export function IntakeForm({
         <div className="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap">
           <div className="space-y-2">
             <label htmlFor="chargedAmount" className="text-sm font-medium text-foreground">
-              Цена (€)
+              Price (€)
             </label>
             <input
               id="chargedAmount"
               name="chargedAmount"
               inputMode="decimal"
-              placeholder="Напр. 120"
+              placeholder="e.g. 120"
               className="min-h-12 w-full rounded-2xl border border-border bg-white px-4 py-3 outline-none transition focus:border-surface-strong sm:w-36"
             />
           </div>
@@ -243,13 +243,13 @@ export function IntakeForm({
           {isSale ? (
             <div className="space-y-2">
               <label htmlFor="coffeeCount" className="text-sm font-medium text-foreground">
-                Брой кафета
+                Coffee count
               </label>
               <input
                 id="coffeeCount"
                 name="coffeeCount"
                 inputMode="numeric"
-                placeholder="Напр. 5000"
+                placeholder="e.g. 5000"
                 className="min-h-12 w-full rounded-2xl border border-border bg-white px-4 py-3 outline-none transition focus:border-surface-strong sm:w-36"
               />
             </div>
@@ -257,8 +257,8 @@ export function IntakeForm({
         </div>
 
         <SubmitButton
-          label={isSale ? "Запази продажбата" : "Запази приемането"}
-          pendingLabel="Запазване..."
+          label={isSale ? "Save sale" : "Save intake"}
+          pendingLabel="Saving..."
         />
       </div>
     </form>

@@ -77,7 +77,7 @@ export function IntakeListCard({
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <p className="text-lg font-semibold leading-snug text-[#23443f]">{intake.customerName}</p>
-                    {intake.isArchived ? <StatusPill label="Архивиран" archived /> : null}
+                    {intake.isArchived ? <StatusPill label="Archived" archived /> : null}
                   </div>
                   <p className="mt-0.5 text-sm font-medium text-[#7b6530]">{intake.brand} {intake.model}</p>
                 </div>
@@ -103,7 +103,7 @@ export function IntakeListCard({
                 </div>
               </div>
 
-              {/* Bottom row: date + Повторен left, price right */}
+              {/* Bottom row: date + Returning left, price right */}
               <div
                 className="mt-1.5 flex items-center justify-between gap-2"
                 onClick={(e) => e.stopPropagation()}
@@ -112,7 +112,7 @@ export function IntakeListCard({
                   <p className="text-sm text-[#23443f]/50">{formatCardDate(intake.createdAtLabel)}</p>
                   {(intake.customerVisitCount ?? 1) > 1 ? (
                     <span className="inline-flex rounded-full border border-[#e0d1a7] bg-[#fbf3de] px-2 py-[3px] text-[11px] font-medium leading-none text-[#7b6530]">
-                      Повторен
+                      Returning
                     </span>
                   ) : null}
                 </div>
@@ -128,7 +128,7 @@ export function IntakeListCard({
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-1.5">
                   <p className="text-lg font-semibold text-[#23443f]">{intake.customerName}</p>
-                  {intake.isArchived ? <StatusPill label="Архивиран" archived /> : null}
+                  {intake.isArchived ? <StatusPill label="Archived" archived /> : null}
                 </div>
                 <p className="mt-0.5 text-sm font-medium text-[#7b6530]">{intake.brand} {intake.model}</p>
                 <p className="mt-0.5 text-sm text-[#23443f]/50">{formatCardDate(intake.createdAtLabel)}</p>
@@ -145,7 +145,7 @@ export function IntakeListCard({
               >
                 {(intake.customerVisitCount ?? 1) > 1 ? (
                   <span className="inline-flex rounded-full border border-[#e0d1a7] bg-[#fbf3de] px-2.5 py-1 text-xs font-medium leading-none text-[#7b6530]">
-                    Повторен
+                    Returning
                   </span>
                 ) : null}
                 <PricePopout

@@ -37,10 +37,10 @@ function ResultCard({
       <div className="mt-0.5 flex items-center gap-2">
         <p className="text-[11px] text-[#60726d]">{result.createdAtLabel}</p>
         {result.intakeType === "sale" ? (
-          <StatusPill label="Продажба" />
+          <StatusPill label="Sale" />
         ) : (
           <StatusPill
-            label={result.isArchived ? "Архивиран" : "Активен"}
+            label={result.isArchived ? "Archived" : "Active"}
             archived={result.isArchived}
           />
         )}
@@ -157,7 +157,7 @@ function SearchInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={onKeyDown}
-        placeholder={placeholder ?? "Търсене…"}
+        placeholder={placeholder ?? "Searching…"}
         autoFocus={autoFocus}
         autoComplete="off"
         className={className}
@@ -314,7 +314,7 @@ export function SearchBar(props: SearchBarProps) {
           onKeyDown={handleKeyDown}
           inputRef={inputRef}
           isLoading={isLoading}
-          placeholder="Търсене…"
+          placeholder="Searching…"
           className="w-full rounded-xl bg-white/10 pl-8 pr-8 py-2 text-sm text-white placeholder:text-white/50 outline-none focus:ring-1 focus:ring-white/30 [&::-webkit-search-cancel-button]:hidden"
         />
 
@@ -329,7 +329,7 @@ export function SearchBar(props: SearchBarProps) {
               onClick={navigateToSearchPage}
               className="w-full px-4 py-2.5 text-center text-xs font-semibold text-[#23443f]/60 hover:bg-[#f4f1e5] transition border-t border-[#e8e4d4]"
             >
-              Виж всички резултати →
+              See all results →
             </button>
           </DropdownPortal>
         ) : null}
@@ -356,7 +356,7 @@ export function SearchBar(props: SearchBarProps) {
           onKeyDown={handleKeyDown}
           inputRef={inputRef}
           isLoading={isLoading}
-          placeholder="Ново търсене…"
+          placeholder="New search…"
           className="w-full rounded-xl border border-border bg-white pl-8 pr-8 py-2.5 text-sm text-[#101614] placeholder:text-[#60726d] outline-none focus:ring-2 focus:ring-[#23443f]/20 [&::-webkit-search-cancel-button]:hidden"
         />
 
@@ -386,7 +386,7 @@ export function SearchBar(props: SearchBarProps) {
             props.onClose();
           }}
           className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 text-white"
-          aria-label="Затвори"
+          aria-label="Close"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18" />
@@ -402,7 +402,7 @@ export function SearchBar(props: SearchBarProps) {
             inputRef={inputRef}
             isLoading={isLoading}
             autoFocus
-            placeholder="Търсене по клиент, машина, телефон…"
+            placeholder="Search by customer, machine, phone…"
             className="w-full rounded-xl bg-white/10 pl-8 pr-8 py-2 text-sm text-white placeholder:text-white/50 outline-none focus:ring-1 focus:ring-white/30 [&::-webkit-search-cancel-button]:hidden"
           />
         </div>
@@ -420,11 +420,11 @@ export function SearchBar(props: SearchBarProps) {
               onClick={navigateToSearchPage}
               className="w-full px-4 py-3 text-center text-sm font-semibold text-[#23443f]/70 hover:bg-[#f4f1e5] transition border-t border-[#e8e4d4]"
             >
-              Виж всички резултати →
+              See all results →
             </button>
           </div>
         ) : query.trim().length >= 2 && !isLoading ? (
-          <p className="px-6 py-8 text-sm text-white/60 text-center">Няма намерени резултати</p>
+          <p className="px-6 py-8 text-sm text-white/60 text-center">No results found</p>
         ) : null}
       </div>
     </div>

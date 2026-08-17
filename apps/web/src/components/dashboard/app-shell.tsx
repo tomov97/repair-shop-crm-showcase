@@ -8,17 +8,17 @@ type NavigationItem = {
 const navigationItems: NavigationItem[] = [
   {
     href: "/intakes",
-    label: "Активни",
+    label: "Active",
   },
   {
     href: "/archive",
-    label: "Архив",
+    label: "Archive",
   },
   {
     href: "/sales",
-    label: "Продажби",
+    label: "Sales",
   },
-  // { href: "/print", label: "За печат" }, // hidden until print agent is live
+  // { href: "/print", label: "Print queue" }, // hidden until print agent is live
 ];
 
 export async function AppShell({

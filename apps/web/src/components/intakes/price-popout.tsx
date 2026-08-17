@@ -82,7 +82,7 @@ export function PricePopout({
       className="rounded-2xl border border-border bg-white p-3 shadow-[0_8px_32px_rgba(20,30,28,0.18)]"
       onClick={(e) => e.stopPropagation()}
     >
-      <p className="mb-2 text-xs font-medium text-muted">Сума (€)</p>
+      <p className="mb-2 text-xs font-medium text-muted">Amount (€)</p>
       <form action={handleSubmit} className="flex flex-col gap-2">
         <input type="hidden" name="intakeId" value={intakeId} />
         <input
@@ -90,14 +90,14 @@ export function PricePopout({
           name="chargedAmount"
           inputMode="decimal"
           defaultValue={normalizedValue}
-          placeholder="Напр. 120"
+          placeholder="e.g. 120"
           className="min-h-9 w-full rounded-xl border border-border px-3 py-2 text-sm outline-none transition focus:border-surface-strong"
         />
         <button
           type="submit"
           className="inline-flex min-h-8 w-full items-center justify-center rounded-xl bg-surface-strong px-3 text-sm font-semibold text-white transition hover:opacity-90"
         >
-          Запази
+          Save
         </button>
         {errorMessage ? (
           <p className="rounded-lg bg-[#fff6ed] px-2 py-1 text-xs text-[#7a4e21]">{errorMessage}</p>
@@ -113,7 +113,7 @@ export function PricePopout({
         type="button"
         onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
         className="inline-flex items-center gap-1 rounded-full border border-[#e0d1a7] bg-[#fbf3de] px-3 py-1.5 text-sm font-semibold text-[#7b6530] transition hover:bg-[#f5e9c8] active:scale-95"
-        title="Въведи цена"
+        title="Enter price"
       >
         {hasAmount ? (
           <>
@@ -121,7 +121,7 @@ export function PricePopout({
             <span className="text-xs text-[#7b6530]/60">€</span>
           </>
         ) : (
-          <span className="text-sm font-medium text-[#7b6530]/60">+ цена</span>
+          <span className="text-sm font-medium text-[#7b6530]/60">+ price</span>
         )}
       </button>
 

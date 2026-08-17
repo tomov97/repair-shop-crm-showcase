@@ -23,9 +23,9 @@ export default async function LoginPage({
       <div className="mx-auto max-w-md">
         <section className="rounded-[2rem] border border-border bg-white/85 px-6 py-8 shadow-[0_24px_80px_rgba(20,30,28,0.08)] backdrop-blur sm:px-8">
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold tracking-tight">Вход</h2>
+            <h2 className="text-2xl font-semibold tracking-tight">Sign in</h2>
             <p className="mt-2 text-sm leading-6 text-muted">
-              Влез с имейл и парола, за да отвориш приемащата форма и останалите записи.
+              Sign in with your email and password to open the intake form and the records.
             </p>
           </div>
 
@@ -33,9 +33,9 @@ export default async function LoginPage({
 
           {!setupStatus.hasUsers && setupStatus.setupAvailable ? (
             <p className="mt-6 rounded-2xl border border-dashed border-border bg-background px-4 py-4 text-sm text-muted">
-              Все още няма създаден потребител. Използвай{" "}
+              No user has been created yet. Use{" "}
               <Link href="/setup" className="font-semibold text-surface-strong underline underline-offset-4">
-                първоначална настройка
+                initial setup
               </Link>
               .
             </p>

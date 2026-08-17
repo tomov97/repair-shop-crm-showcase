@@ -49,37 +49,37 @@ export type UpdateIntakeActionState = {
 };
 
 const serviceIntakeSchema = z.object({
-  fullName: z.string().trim().min(2, "Въведи име на клиент."),
-  countryCode: z.string().trim().regex(/^\+\d{1,4}$/, "Избери валиден код."),
-  phoneNumber: z.string().trim().min(6, "Въведи телефонен номер."),
-  brand: z.string().trim().min(1, "Въведи марка."),
-  model: z.string().trim().min(1, "Въведи модел."),
-  issueDescription: z.string().trim().min(5, "Опиши проблема."),
-  submissionToken: z.string().trim().min(12, "Липсва токен за изпращане."),
+  fullName: z.string().trim().min(2, "Enter a customer name."),
+  countryCode: z.string().trim().regex(/^\+\d{1,4}$/, "Select a valid country code."),
+  phoneNumber: z.string().trim().min(6, "Enter a phone number."),
+  brand: z.string().trim().min(1, "Enter a brand."),
+  model: z.string().trim().min(1, "Enter a model."),
+  issueDescription: z.string().trim().min(5, "Describe the problem."),
+  submissionToken: z.string().trim().min(12, "Missing submission token."),
   customerResolution: z.string().optional(),
 });
 
 // Sales intakes: note (issueDescription) is optional, coffee count accepted at creation
 const saleIntakeSchema = z.object({
-  fullName: z.string().trim().min(2, "Въведи ime на клиент."),
-  countryCode: z.string().trim().regex(/^\+\d{1,4}$/, "Избери валиден код."),
-  phoneNumber: z.string().trim().min(6, "Въведи телефонен номер."),
-  brand: z.string().trim().min(1, "Въведи марка."),
-  model: z.string().trim().min(1, "Въведи модел."),
+  fullName: z.string().trim().min(2, "Enter a customer name."),
+  countryCode: z.string().trim().regex(/^\+\d{1,4}$/, "Select a valid country code."),
+  phoneNumber: z.string().trim().min(6, "Enter a phone number."),
+  brand: z.string().trim().min(1, "Enter a brand."),
+  model: z.string().trim().min(1, "Enter a model."),
   issueDescription: z.string().trim().default(""),
-  submissionToken: z.string().trim().min(12, "Липсва токен за изпращане."),
+  submissionToken: z.string().trim().min(12, "Missing submission token."),
   customerResolution: z.string().optional(),
   coffeeCount: z.string().optional(),
 });
 
 const updateIntakeSchema = z.object({
-  intakeId: z.string().uuid("Липсва валидно приемане."),
+  intakeId: z.string().uuid("No valid intake."),
   intakeType: z.enum(["service", "sale"]).default("service"),
-  fullName: z.string().trim().min(2, "Въведи ime на клиент."),
-  countryCode: z.string().trim().regex(/^\+\d{1,4}$/, "Избери валиден код."),
-  phoneNumber: z.string().trim().min(6, "Въведи телефонен номер."),
-  brand: z.string().trim().min(1, "Въведи марка."),
-  model: z.string().trim().min(1, "Въведи модел."),
+  fullName: z.string().trim().min(2, "Enter a customer name."),
+  countryCode: z.string().trim().regex(/^\+\d{1,4}$/, "Select a valid country code."),
+  phoneNumber: z.string().trim().min(6, "Enter a phone number."),
+  brand: z.string().trim().min(1, "Enter a brand."),
+  model: z.string().trim().min(1, "Enter a model."),
   issueDescription: z.string().trim().default(""),
   returnTo: z.string().trim().min(1).default("/"),
 });
@@ -190,7 +190,7 @@ export async function createIntakeAction(
 
   if (result.type === "needs_customer_confirmation") {
     return {
-      message: "Намерихме подобен клиент. Потвърди дали да свържем приемането или да създадем нов запис.",
+      message: "We found a similar customer. Confirm whether to link this intake or create a new record.",
       values: rawValues,
       matches: result.matches,
     };
@@ -222,7 +222,7 @@ export async function archiveIntakeAction(
 
   if (!intakeId) {
     return {
-      message: "Липсва приемане за архивиране.",
+      message: "No intake to archive.",
     };
   }
 
@@ -254,13 +254,13 @@ export async function saveChargedAmountAction(
 
   if (!intakeId) {
     return {
-      message: "Липсва приемане за сумата.",
+      message: "No intake for the amount.",
     };
   }
 
   if (!chargedAmountValue?.trim()) {
     return {
-      message: "Въведи сума за плащане.",
+      message: "Enter the amount charged.",
     };
   }
 
@@ -268,7 +268,7 @@ export async function saveChargedAmountAction(
 
   if (chargedAmount === null) {
     return {
-      message: "Въведи валидна сума по-голяма от нула.",
+      message: "Enter a valid amount greater than zero.",
     };
   }
 
@@ -300,17 +300,17 @@ export async function saveCoffeeCountAction(
   const coffeeCountValue = getOptionalFormValue(formData, "coffeeCount");
 
   if (!intakeId) {
-    return { message: "Липсва приемане." };
+    return { message: "No intake." };
   }
 
   if (!coffeeCountValue?.trim()) {
-    return { message: "Въведи брой кафета." };
+    return { message: "Enter the coffee count." };
   }
 
   const parsed = parseInt(coffeeCountValue.trim(), 10);
 
   if (isNaN(parsed) || parsed < 0) {
-    return { message: "Въведи валидно цяло число." };
+    return { message: "Enter a valid whole number." };
   }
 
   const result = await saveCoffeeCount({
@@ -343,7 +343,7 @@ export async function reprintIntakeAction(
   const returnTo = getOptionalFormValue(formData, "returnTo") ?? "/";
 
   if (!intakeId) {
-    return { message: "Липсва приемане за печат." };
+    return { message: "No intake to print." };
   }
 
   const result = await requeuePrintJob({ actorId: user.id, intakeId });
