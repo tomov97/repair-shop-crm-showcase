@@ -1,6 +1,6 @@
 # Coffee Machine Repair CRM
 
-![Log it on the phone. The label prints itself.](docs/screenshots/01-cover.png)
+![Custom-built CRM with automated QR label printing](docs/screenshots/01-cover.png)
 
 A custom CRM for a family repair business, built from scratch. It replaced a paper-ticket workflow with a system that prints a QR label for every machine that comes through the door, and pulls up that machine's full history when the label is scanned.
 
