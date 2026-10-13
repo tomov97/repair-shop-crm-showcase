@@ -1,5 +1,7 @@
 # Coffee Machine Repair CRM
 
+![Log it on the phone. The label prints itself.](docs/screenshots/01-cover.png)
+
 A custom CRM for a family repair business, built from scratch. It replaced a paper-ticket workflow with a system that prints a QR label for every machine that comes through the door, and pulls up that machine's full history when the label is scanned.
 
 > **This is the English demo build** of a system running in production for a Bulgarian repair shop. The production UI is in Bulgarian; this branch translates it and runs against seeded demo data so the code and the interface can be read by anyone. No customer data is included.
@@ -14,21 +16,7 @@ The shop ran on handwritten tickets taped to machines. Three things went wrong c
 
 ## How it works
 
-```
-Intake form (mobile)
-        │
-        ▼
- Save to Postgres ──────────► intake number + QR scan token generated
-        │                     (atomic DB sequence, never resets)
-        ▼
- Queue a print job
-        │
-        ▼
- Print agent on the shop PC ──► polls Supabase, downloads the label,
-        │                        prints via the OS driver, reports status
-        ▼
- Label on the machine ────────► scan → /t/{token} → full repair history
-```
+![Architecture: intake data is saved before anything prints](docs/screenshots/09-architecture.png)
 
 The ordering is the whole design. **Intake data is committed before any print attempt.** A jammed printer, an offline PC, or a bad USB cable produces a failed job row and nothing else. The record is already safe, and staff reprint with one tap.
 
@@ -43,8 +31,38 @@ Print jobs are attempted exactly once and never auto-retried. Silent retries aga
 - **Search** by customer, phone, machine, or intake number.
 - **Active / archive split**, with the charged amount captured on archive.
 - **Sales records** alongside repairs, sharing the same table via a discriminator column with DB-enforced constraints.
-- **Audit trail** on every state change.
+- **Audit log** of every state change, stored in `audit_events`.
 - **Print queue view** showing queued, printing, printed, and failed jobs with the underlying error.
+
+## Screenshots
+
+**1. Intake on the phone.** A new repair is logged in under a minute. Returning customers are matched by phone number.
+
+<img src="docs/screenshots/02-intake-mobile.png" width="320" alt="Mobile intake form">
+
+**2. The label.** Printed automatically on a Brother QL-800 at the counter: intake number plus a QR code.
+
+<img src="docs/screenshots/03-label.png" width="480" alt="Printed QR label">
+
+**3. Scan the label.** Any logged-in phone opens the machine's record, including every earlier visit.
+
+<img src="docs/screenshots/04-scan-record-mobile.png" width="320" alt="Record opened from a QR scan">
+
+**4. Before/after photos.** Taken at intake and at pickup, so disputes about the machine's condition have evidence.
+
+<img src="docs/screenshots/05-photos.png" width="560" alt="Before and after photos on a record">
+
+**5. Repair history.** Earlier intakes for the same customer, one tap away.
+
+<img src="docs/screenshots/06-history.png" width="560" alt="Previous intakes">
+
+**6. Dashboard.** Active repairs grouped by day, filterable by date range.
+
+![Active records dashboard](docs/screenshots/07-dashboard.png)
+
+**7. Print queue.** A failed print shows the printer's error and never affects the saved record. Staff reprint with one tap.
+
+![Print queue with a failed job](docs/screenshots/08-print-queue.png)
 
 ## Architecture
 
@@ -105,3 +123,7 @@ npm run typecheck        # typecheck all
 ## Built with Claude Code
 
 The entire system was designed and implemented with [Claude Code](https://claude.com/claude-code) as the primary development environment, including the schema design, the print pipeline, and the hardware integration debugging.
+
+## Credits
+
+Demo photos from Wikimedia Commons: "Tunbow coffee machine brew group" and "Tunbow coffee machine brew group unit" by Blackeyelion (CC BY 4.0); "Saeco (LRM 20250919 142538)" and "Saeco (LRM 20250919 142532)" by Matti Blume (CC BY-SA 4.0). All customer names and phone numbers are fictional.

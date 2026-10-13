@@ -189,7 +189,7 @@ export const TRANSLATIONS = {
 
   // Search
   "Търсене по клиент, машина, телефон…": "Search by customer, machine, phone…",
-  "Търсене…": "Searching…",
+  "Търсене…": "Search…",
   "Ново търсене…": "New search…",
   "Резултати от търсене": "Search results",
   "Виж всички резултати →": "See all results →",

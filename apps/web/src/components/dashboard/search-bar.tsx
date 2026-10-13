@@ -157,7 +157,7 @@ function SearchInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={onKeyDown}
-        placeholder={placeholder ?? "Searching…"}
+        placeholder={placeholder ?? "Search…"}
         autoFocus={autoFocus}
         autoComplete="off"
         className={className}
@@ -314,7 +314,7 @@ export function SearchBar(props: SearchBarProps) {
           onKeyDown={handleKeyDown}
           inputRef={inputRef}
           isLoading={isLoading}
-          placeholder="Searching…"
+          placeholder="Search…"
           className="w-full rounded-xl bg-white/10 pl-8 pr-8 py-2 text-sm text-white placeholder:text-white/50 outline-none focus:ring-1 focus:ring-white/30 [&::-webkit-search-cancel-button]:hidden"
         />
 
